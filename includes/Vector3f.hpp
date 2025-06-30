@@ -30,5 +30,5 @@ class	Vector3f {
 
 float		dot(const Vector3f& vectorA, const Vector3f& vectorB);
 Vector3f	cross(const Vector3f& vectorA, const Vector3f& vectorB);
-Vector3f	component_multiply(const Vector3f& vectorA, const Vector3f& vectorB);
+Vector3f	componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB);
 #endif

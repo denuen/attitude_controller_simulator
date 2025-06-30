@@ -117,7 +117,7 @@ Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
 	return Vector3f(x, y, z);
 }
 
-Vector3f component_multiply(const Vector3f& vectorA, const Vector3f& vectorB) {
+Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB) {
 	return Vector3f(vectorA.getX() * vectorB.getX(),
 					vectorA.getY() * vectorB.getY(),
 					vectorA.getZ() * vectorB.getZ());

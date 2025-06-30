@@ -55,14 +55,14 @@ void	Vector3f::setX(const float x) {
 
 void	Vector3f::setY(const float y) {
 
-	assert(!std::isinf(y) && !std::isnan(y) && "Vector3f setY: value must be finite");
+	assert(!std::isinf(y) && !std::isnan(y) && "Error: Vector3f setY: value must be finite");
 	this->y = y;
 
 }
 
 void	Vector3f::setZ(const float z) {
 
-	assert(!std::isinf(z) && !std::isnan(z) && "Vector3f setZ: value must be finite");
+	assert(!std::isinf(z) && !std::isnan(z) && "Error: Vector3f setZ: value must be finite");
 	this->z = z;
 
 }
@@ -93,7 +93,8 @@ float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
 			vectorA.getY() * vectorB.getY() +
 			vectorA.getZ() * vectorB.getZ();
 
-	assert(!std::isinf(result) && !std::isnan(result) && "Vector3f dot product: result must be finite");
+	assert(!std::isinf(result) && !std::isnan(result)
+		&& "Error: Vector3f dot product: result must be finite");
 
 	return result;
 }
@@ -111,7 +112,7 @@ Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
 	assert(!std::isinf(x) && !std::isnan(x)
 			&& !std::isinf(y) && !std::isnan(y)
 			&& !std::isinf(z) && !std::isnan(z)
-			&& "Vector3f cross product: result components must be finite");
+			&& "Error: Vector3f cross product: result components must be finite");
 
 	return Vector3f(x, y, z);
 }

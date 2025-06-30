@@ -1,20 +1,18 @@
 #include "Vector3f.hpp"
 #include "limits.h"
-
-#include <iostream>
 #include <cmath>
+#include <cassert>
 
 Vector3f::Vector3f(const float x, const float y, const float z) {
 
-	if (std::isinf(x) || std::isinf(y) || std::isinf(z)
-		|| std::isnan(x) || std::isnan(y) || std::isnan(z)) {
-		std::cerr << "Error: oveflow detected in Vector3f istance. Resetting values to '0.0f'" << std::endl;
-	} else {
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
-	
+	assert(!std::isinf(x) && !std::isinf(y) && !std::isinf(z)
+			&& !std::isnan(x) && !std::isnan(y) && !std::isnan(z)
+			&& "Error: Vector3f constructor: values must be finite");
+
+	this->x = x;
+	this->y = y;
+	this->z = z;
+
 }
 
 Vector3f::Vector3f(const Vector3f& vector) {
@@ -38,72 +36,70 @@ Vector3f& Vector3f::operator=(const Vector3f& vector) {
 
 void	Vector3f::setVariables(const float x, const float y, const float z) {
 
-	if (std::isinf(x) || std::isinf(y) || std::isinf(z)
-		|| std::isnan(x) || std::isnan(y) || std::isnan(z)) {
-		std::cerr << "Error: oveflow detected in Vector3f assignment. No changes were made." << std::endl;
-	} else {
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
+	assert(!std::isinf(x) && !std::isinf(y) && !std::isinf(z) &&
+			!std::isnan(x) && !std::isnan(y) && !std::isnan(z) &&
+			"Error: Vector3f setVariables: values must be finite");
+
+	this->x = x;
+	this->y = y;
+	this->z = z;
 
 }
 
 void	Vector3f::setX(const float x) {
 
-	if (isinf(x) || isnan(x)) {
-		std::cerr << "Error: oveflow detected in Vector3f (x assignment). No changes were made." << std::endl;
-	} else {
-		this->x = x;
-	}
+	assert(!std::isinf(x) && !std::isnan(x) && "Vector3f setX: value must be finite");
+	this->x = x;
 
 }
 
 void	Vector3f::setY(const float y) {
 
-	if (isinf(y) || isnan(y)) {
-		std::cerr << "Error: oveflow detected in Vector3f (y assignment). No changes were made." << std::endl;
-	} else {
-		this->y = y;
-	}
+	assert(!std::isinf(y) && !std::isnan(y) && "Vector3f setY: value must be finite");
+	this->y = y;
 
 }
 
 void	Vector3f::setZ(const float z) {
 
-	if (isinf(z) || isnan(z)) {
-		std::cerr << "Error: oveflow detected in Vector3f (z assignment). No changes were made." << std::endl;
-	} else {
-		this->z = z;
-	}
+	assert(!std::isinf(z) && !std::isnan(z) && "Vector3f setZ: value must be finite");
+	this->z = z;
 
 }
 
-float	dot(Vector3f& vectorA, Vector3f& vectorB) {
-	float	result;
+Vector3f Vector3f::operator+(const Vector3f& vector) const {
 
-	if ( std::isinf(vectorA.getX() * vectorB.getX()) || std::isnan(vectorA.getX() * vectorB.getX()) ) {
-		std::cerr << "Error: oveflow detected in Vector3f (x dot). No changes were made." << std::endl;
-	} else {
-		result += vectorA.getX() * vectorB.getX();
-	}
+	return Vector3f(x + vector.x, y + vector.y, z + vector.z);
 
-	if ( std::isinf(vectorA.getY() * vectorB.getY()) || std::isnan(vectorA.getY() * vectorB.getY()) ) {
-		std::cerr << "Error: oveflow detected in Vector3f (y dot). No changes were made." << std::endl;
-	} else {
-		result += vectorA.getY() * vectorB.getY();
-	}
-
-	if ( std::isinf(vectorA.getZ() * vectorB.getZ()) || std::isnan(vectorA.getZ() * vectorB.getZ()) ) {
-		std::cerr << "Error: oveflow detected in Vector3f (z assignment). No changes were made." << std::endl;
-	} else {
-		result += vectorA.getZ() * vectorB.getZ();
-	}
-
-	return (result);
 }
 
-Vector3f cross(Vector3f& vectorA, Vector3f& vectorB) {
+Vector3f Vector3f::operator-(const Vector3f& vector) const {
+
+	return Vector3f(x - vector.x, y - vector.y, z - vector.z);
+
+}
+
+Vector3f Vector3f::operator*(float scalar) const {
+
+	return Vector3f(x * scalar, y * scalar, z * scalar);
+
+}
+
+float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
+
+	float result;
+
+	result = vectorA.getX() * vectorB.getX() +
+			vectorA.getY() * vectorB.getY() +
+			vectorA.getZ() * vectorB.getZ();
+
+	assert(!std::isinf(result) && !std::isnan(result) && "Vector3f dot product: result must be finite");
+
+	return result;
+}
+
+Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
+
 	float	x;
 	float	y;
 	float	z;
@@ -112,14 +108,18 @@ Vector3f cross(Vector3f& vectorA, Vector3f& vectorB) {
 	y = vectorA.getZ() * vectorB.getX() - vectorA.getX() * vectorB.getZ();
 	z = vectorA.getX() * vectorB.getY() - vectorA.getY() * vectorB.getX();
 
-	if (std::isinf(x) || std::isnan(x) ||
-		std::isinf(y) || std::isnan(y) ||
-		std::isinf(z) || std::isnan(z)) {
-		std::cerr << "Error: overflow or NaN detected in Vector3f cross product. Returning zero vector." << std::endl;
-		return Vector3f(0.0f, 0.0f, 0.0f);
-	}
+	assert(!std::isinf(x) && !std::isnan(x)
+			&& !std::isinf(y) && !std::isnan(y)
+			&& !std::isinf(z) && !std::isnan(z)
+			&& "Vector3f cross product: result components must be finite");
 
 	return Vector3f(x, y, z);
+}
+
+Vector3f component_multiply(const Vector3f& vectorA, const Vector3f& vectorB) {
+	return Vector3f(vectorA.getX() * vectorB.getX(),
+					vectorA.getY() * vectorB.getY(),
+					vectorA.getZ() * vectorB.getZ());
 }
 
 Vector3f::~Vector3f() {

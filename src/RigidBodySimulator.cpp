@@ -100,7 +100,7 @@ void RigidBodySimulator::update(float dt, const Vector3f& torque) {
 		&& "Error: Torque components must be finite");
 
 	// I·ω
-	Vector3f inertiaOmega = component_multiply(inertia, omega);
+	Vector3f inertiaOmega = componentMultiply(inertia, omega);
 
 	// ω × (I·ω)
 	Vector3f gyroscopicTerm = cross(omega, inertiaOmega);
@@ -109,7 +109,7 @@ void RigidBodySimulator::update(float dt, const Vector3f& torque) {
 	Vector3f netTorque = torque - gyroscopicTerm;
 
 	// angular acceleration: α = I^(-1) * netTorque
-	Vector3f angularAcceleration = component_multiply(inverseInertia, netTorque);
+	Vector3f angularAcceleration = componentMultiply(inverseInertia, netTorque);
 
 	// euler integration for angular velocity: ω = ω + α * dt
 	omega = omega + angularAcceleration * dt;

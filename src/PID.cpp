@@ -8,12 +8,12 @@ const float	PID::DEFAULT_OUTPUT_MAX = 1000.0f;
 const float PID::DEFAULT_OUTPUT_MIN = -1000.0f;
 
 PID::PID() :
-kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f) {
+kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
 
 }
 
 PID::PID(const float kp, const float ki, const float kd) :
-kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f) {
+kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
 
 	assert(!std::isinf(kp) && !std::isnan(kp)
 		&& !std::isinf(ki) && !std::isnan(ki)
@@ -82,15 +82,23 @@ void	PID::setGains(const float kp, const float ki, const float kd) {
 
 }
 
+void	PID::setDerivativeSmoothing(float alpha) {
+
+	assert(alpha >= 0.0f && alpha <= 1.0f && "Error: alpha must be in [0,1]");
+
+	derivativeAlpha = alpha;
+
+}
+
 float	PID::compute(const float setpoint, const float measure, const float dt) {
 	float	ek;
-	float	derivative;
+	float	rawDerivative;
 	float	result;
 
 	assert(dt > 0.0f && "Error: dt must be positive");
 
 	ek = setpoint - measure;
-	assert(!std::isinf(ek) && !std::isnan(ek) && "Error: the error at the k-iteration must be finite");
+	assert(!std::isinf(ek) && !std::isnan(ek) && "Error: the error value at the k-iteration must be finite");
 
 	integral += ek * dt;
 	if (integral > DEFAULT_INTEGRAL_MAX)
@@ -99,14 +107,15 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 		integral = DEFAULT_INTEGRAL_MIN;
 
 
-	derivative = (ek - previousError) / dt;
+	rawDerivative = (ek - previousError) / dt;
+	filteredDerivative = derivativeAlpha * rawDerivative + (1.0f - derivativeAlpha) * filteredDerivative;
 
-	result = kp * ek + ki * integral + kd * derivative;
+	result = kp * ek + ki * integral + kd * filteredDerivative;
 	if (result > DEFAULT_OUTPUT_MAX)
 		result = DEFAULT_OUTPUT_MAX;
 	else if (result < DEFAULT_OUTPUT_MIN)
 		result = DEFAULT_OUTPUT_MIN;
-		
+
 	previousError = ek;
 
 	assert(!std::isinf(result) && !std::isnan(result) && "Error: PID output invalid");

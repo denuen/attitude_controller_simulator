@@ -2,6 +2,11 @@
 #include <iostream>
 #include <cassert>
 
+const float	PID::DEFAULT_INTEGRAL_MAX = 100.0f;
+const float PID::DEFAULT_INTEGRAL_MIN = -100.0f;
+const float	PID::DEFAULT_OUTPUT_MAX = 1000.0f;
+const float PID::DEFAULT_OUTPUT_MIN = -1000.0f;
+
 PID::PID() :
 kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f) {
 
@@ -88,9 +93,20 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 	assert(!std::isinf(ek) && !std::isnan(ek) && "Error: the error at the k-iteration must be finite");
 
 	integral += ek * dt;
+	if (integral > DEFAULT_INTEGRAL_MAX)
+		integral = DEFAULT_INTEGRAL_MAX;
+	else if (integral < DEFAULT_INTEGRAL_MIN)
+		integral = DEFAULT_INTEGRAL_MIN;
+
+
 	derivative = (ek - previousError) / dt;
 
 	result = kp * ek + ki * integral + kd * derivative;
+	if (result > DEFAULT_OUTPUT_MAX)
+		result = DEFAULT_OUTPUT_MAX;
+	else if (result < DEFAULT_OUTPUT_MIN)
+		result = DEFAULT_OUTPUT_MIN;
+		
 	previousError = ek;
 
 	assert(!std::isinf(result) && !std::isnan(result) && "Error: PID output invalid");

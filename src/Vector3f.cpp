@@ -1,5 +1,4 @@
 #include "Vector3f.hpp"
-#include "limits.h"
 #include <cmath>
 #include <cassert>
 

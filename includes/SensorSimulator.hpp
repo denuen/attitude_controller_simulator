@@ -7,9 +7,10 @@
 class SensorSimulator {
 
 	private:
-		Vector3f	driftOmega;
-		Vector3f	drigtAngles;
-		Vector3f	noiseStdDev;
+		Vector3f			driftOmega;
+		Vector3f			driftAngles;
+		Vector3f			driftRate;
+		Vector3f			noiseStdDev;
 
 		RigidBodySimulator*	source;
 
@@ -19,15 +20,15 @@ class SensorSimulator {
 
 		SensorSimulator&	operator=(const SensorSimulator& sensorSimulator);
 
-		void	setNoiseStdDev(const Vector3f& stddev);
-		void	setDriftRate(const Vector3f& rate);
+		inline void			setNoiseStdDev(const Vector3f& stddev) { noiseStdDev = stddev; }
+		inline void			setDriftRate(const Vector3f& rate) { driftRate = rate; }
 
-		void	update(float dt);
+		void				update(float dt);
 
-		Vector3f	readAngularVelocity() const;
-		Vector3f	readOrientation() const;
+		Vector3f			readAngularVelocity() const;
+		Vector3f			readOrientation() const;
 
-		void	reset();
+		void				reset();
 
 		~SensorSimulator();
 };

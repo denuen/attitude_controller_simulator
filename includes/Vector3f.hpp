@@ -25,6 +25,8 @@ class	Vector3f {
 		inline float		getY(void) const { return (y); }
 		inline float		getZ(void) const { return (z); }
 
+		void				assertVectorCheck();
+
 		~Vector3f();
 };
 

@@ -84,6 +84,12 @@ Vector3f Vector3f::operator*(float scalar) const {
 
 }
 
+void	Vector3f::assertVectorCheck() {
+	assert(!std::isnan(x) && !std::isinf(x) && "Error: Vector3f: NaN or Inf in vector component X");
+	assert(!std::isnan(y) && !std::isinf(y) && "Error: Vector3f: NaN or Inf in vector component Y");
+	assert(!std::isnan(z) && !std::isinf(z) && "Error: Vector3f: NaN or Inf in vector component Z");
+}
+
 float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
 
 	float result;
@@ -121,6 +127,8 @@ Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB) {
 					vectorA.getY() * vectorB.getY(),
 					vectorA.getZ() * vectorB.getZ());
 }
+
+
 
 Vector3f::~Vector3f() {
 

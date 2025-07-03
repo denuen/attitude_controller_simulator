@@ -1,7 +1,7 @@
 #ifndef PIDCONTROLLER_HPP
 #define PIDCONTROLLER_HPP
 
-#include "Vector3f.hpp"
+#include "../physics/Vector3f.hpp"
 #include "PID.hpp"
 
 class PIDController {

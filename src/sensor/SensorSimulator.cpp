@@ -1,4 +1,4 @@
-#include "SensorSimulator.hpp"
+#include "../../includes/sensor/SensorSimulator.hpp"
 #include <iostream>
 #include <cassert>
 
@@ -53,10 +53,10 @@ Vector3f	SensorSimulator::readAngularVelocity() const {
 	realOmega = source->getOmega();
 
 	/*Gaussian noise should take (mean, stddev) as parameters and should
-	/*generate a random gaussian number with mean=0 and stddev */
-	noise.setX(/*Gaussian noise*/);
-	noise.setY(/*Gaussian noise*/);
-	noise.setZ(/*Gaussian noise*/);
+	generate a random gaussian number with mean=0 and stddev */
+	//noise.setX(/*Gaussian noise*/);
+	//noise.setY(/*Gaussian noise*/);
+	//noise.setZ(/*Gaussian noise*/);
 
 	return (realOmega + driftOmega + noise);
 }

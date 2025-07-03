@@ -2,10 +2,10 @@
 #include <cassert>
 #include <cmath>
 
-#include "../includes/Vector3f.hpp"
-#include "../includes/PID.hpp"
-#include "../includes/PIDController.hpp"
-#include "../includes/RigidBodySimulator.hpp"
+#include "../includes/physics/RigidBodySimulator.hpp"
+#include "../includes/physics/Vector3f.hpp"
+#include "../includes/control/PID.hpp"
+#include "../includes/control/PIDController.hpp"
 
 void assertAlmostEqual(float a, float b, float eps = 1e-5f) {
     assert(std::fabs(a - b) < eps && "Values not approximately equal");

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "../includes/Vector3f.hpp"
-#include "../includes/PID.hpp"
-#include "../includes/PIDController.hpp"
-#include "../includes/RigidBodySimulator.hpp"
+#include "../includes/physics/Vector3f.hpp"
+#include "../includes/control/PID.hpp"
+#include "../includes/control/PIDController.hpp"
+#include "../includes/physics/RigidBodySimulator.hpp"
 
 // Vector3f
 TEST(Vector3fTest, BasicOperations) {

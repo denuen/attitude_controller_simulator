@@ -1,7 +1,7 @@
 #ifndef RIGIDBODYSIMULATOR_HPP
 #define RIGIDBODYSIMULATOR_HPP
 
-#include "Vector3f.hpp"
+#include "../physics/Vector3f.hpp"
 #include <cassert>
 
 class RigidBodySimulator

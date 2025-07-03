@@ -1,8 +1,8 @@
 #ifndef SENSORSIMULATOR_HPP
 #define SENSORSIMULATOR_HPP
 
-#include "Vector3f.hpp"
-#include "RigidBodySimulator.hpp"
+#include "../physics/Vector3f.hpp"
+#include "../physics/RigidBodySimulator.hpp"
 
 class SensorSimulator {
 

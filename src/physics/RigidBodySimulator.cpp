@@ -1,4 +1,4 @@
-#include "RigidBodySimulator.hpp"
+#include "../../includes/physics/RigidBodySimulator.hpp"
 #include <cmath>
 #include <cassert>
 

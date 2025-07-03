@@ -6,7 +6,7 @@
 
 SensorSimulator::SensorSimulator(RigidBodySimulator* source) :
 driftOmega(0.0f, 0.0f, 0.0f), driftAngles(0.0f, 0.0f, 0.0f),
-driftRate(0.0f, 0.0f, 0.0f), noiseStdDev(0.0f, 0.0f, 0.0f), source(source) {
+driftRate(0.0f, 0.0f, 0.0f), noiseStdDev(0.0f, 0.0f, 0.0f), source(source), noiseGenerator() {
 
 	assert(source != nullptr && "Error: SensorSimulator constructor: source must be a non-null pointer");
 
@@ -15,7 +15,7 @@ driftRate(0.0f, 0.0f, 0.0f), noiseStdDev(0.0f, 0.0f, 0.0f), source(source) {
 SensorSimulator::SensorSimulator(const SensorSimulator& sensorSimulator) :
 driftOmega(sensorSimulator.driftOmega), driftAngles(sensorSimulator.driftAngles),
 driftRate(sensorSimulator.driftRate), noiseStdDev(sensorSimulator.noiseStdDev),
-source(sensorSimulator.source) {
+source(sensorSimulator.source), noiseGenerator(sensorSimulator.noiseGenerator) {
 
 }
 
@@ -24,8 +24,10 @@ SensorSimulator&	SensorSimulator::operator=(const SensorSimulator& sensorSimulat
 	if (this != &sensorSimulator) {
 		driftOmega = sensorSimulator.driftOmega;
 		driftAngles = sensorSimulator.driftAngles;
+		driftRate = sensorSimulator.driftRate;
 		noiseStdDev = sensorSimulator.noiseStdDev;
 		source = sensorSimulator.source;
+		noiseGenerator = sensorSimulator.noiseGenerator;
 	}
 
 	return (*this);
@@ -46,17 +48,71 @@ void	SensorSimulator::update(float dt) {
 	driftRate.assertVectorCheck();
 }
 
-Vector3f	SensorSimulator::readAngularVelocity() const {
+Vector3f	SensorSimulator::readAngularVelocity(void) const {
+
+	Vector3f result;
+
+	assert(source != nullptr && "Error: SensorSimulator::readAngularVelocity: source pointer is null");
+
 	Vector3f	noise;
 	Vector3f	realOmega;
 
 	realOmega = source->getOmega();
+	realOmega.assertVectorCheck();
 
-	/*Gaussian noise should take (mean, stddev) as parameters and should
-	generate a random gaussian number with mean=0 and stddev */
-	//noise.setX(/*Gaussian noise*/);
-	//noise.setY(/*Gaussian noise*/);
-	//noise.setZ(/*Gaussian noise*/);
+	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
+	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
+	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
+	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
 
-	return (realOmega + driftOmega + noise);
+	noise.assertVectorCheck();
+
+	result = realOmega + driftOmega + noise;
+	result.assertVectorCheck();
+
+	return (result);
+}
+
+Vector3f	SensorSimulator::readOrientation() const {
+
+	assert(source != nullptr && "Error: SensorSimulator::readOrientation: source pointer is null");
+
+	Vector3f	noise;
+	Vector3f	result;
+	Vector3f	realAngles(
+		source->getPitch(),
+		source->getYaw(),
+		source->getRoll()
+	);
+
+	realAngles.assertVectorCheck();
+
+	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
+	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
+	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
+	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
+
+	noise.assertVectorCheck();
+
+	result = realAngles + driftAngles + noise;
+	result.assertVectorCheck();
+
+	return (result);
+}
+
+void	SensorSimulator::reset() {
+
+	driftOmega.setVariables(0.0f, 0.0f, 0.0f);
+	driftAngles.setVariables(0.0f, 0.0f, 0.0f);
+	driftRate.setVariables(0.0f, 0.0f, 0.0f);
+
+	noiseGenerator.reset();
+
+	driftOmega.assertVectorCheck();
+	driftAngles.assertVectorCheck();
+	driftRate.assertVectorCheck();
+}
+
+SensorSimulator::~SensorSimulator() {
+
 }

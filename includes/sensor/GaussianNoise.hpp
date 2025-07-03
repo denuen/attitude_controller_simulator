@@ -12,10 +12,11 @@ class GaussianNoiseGenerator {
 		GaussianNoiseGenerator(const GaussianNoiseGenerator& gng);
 
 		GaussianNoiseGenerator&	operator=(const GaussianNoiseGenerator& gng);
-		
+
 		float		generate(float mean, float stddev);
 		static void	initSeed();
-
+		inline void	reset() { hasSpare = false; }
+		
 		~GaussianNoiseGenerator();
 };
 

@@ -3,16 +3,18 @@
 
 #include "../physics/Vector3f.hpp"
 #include "../physics/RigidBodySimulator.hpp"
+#include "GaussianNoise.hpp"
 
 class SensorSimulator {
 
 	private:
-		Vector3f			driftOmega;
-		Vector3f			driftAngles;
-		Vector3f			driftRate;
-		Vector3f			noiseStdDev;
+		Vector3f						driftOmega;
+		Vector3f						driftAngles;
+		Vector3f						driftRate;
+		Vector3f						noiseStdDev;
 
-		RigidBodySimulator*	source;
+		RigidBodySimulator*				source;
+		mutable GaussianNoiseGenerator	noiseGenerator;
 
 	public:
 		SensorSimulator(RigidBodySimulator* source);

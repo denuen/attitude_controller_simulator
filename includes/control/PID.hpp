@@ -26,12 +26,12 @@ class PID {
 
 		PID&	operator=(const PID& pid);
 
-		inline const float&		getKp(void) const { return (kp); }
-		inline const float&		getKi(void) const { return (ki); }
-		inline const float&		getKd(void) const { return (kd); }
-		inline const float& 	getIntegral(void) const { return (integral); }
-		inline const float& 	getPrevErr(void) const { return (previousError); }
-		inline const float&		getDerivativeSmoothing(void) const { return (derivativeAlpha); }
+		inline const float	getKp(void) const { return (kp); }
+		inline const float	getKi(void) const { return (ki); }
+		inline const float	getKd(void) const { return (kd); }
+		inline const float	getIntegral(void) const { return (integral); }
+		inline const float	getPrevErr(void) const { return (previousError); }
+		inline const float	getDerivativeSmoothing(void) const { return (derivativeAlpha); }
 
 		void				setKp(const float kp);
 		void				setKi(const float ki);

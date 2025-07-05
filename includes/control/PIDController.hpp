@@ -13,7 +13,7 @@ class PIDController {
 
 	public:
 		PIDController();
-		PIDController(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd);
+		explicit PIDController(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd);
 		PIDController(const PIDController& pidController);
 
 		PIDController&	operator=(const PIDController& pidController);

@@ -31,13 +31,13 @@ class RigidBodySimulator
 		void							setOmega(const Vector3f& omega);
 		void							setInertia(const Vector3f& inertia);
 
-		inline const float&				getPitch(void) const { return (pitch); }
-		inline const float&				getYaw(void) const { return (yaw); }
-		inline const float&				getRoll(void) const { return (roll); }
-		inline const float&				getDt(void) const { return (dt); }
-		inline const Vector3f&			getOmega(void) const { return (omega); }
-		inline const Vector3f&			getInertia(void) const { return (inertia); }
-		inline const Vector3f&			getInverseInertia(void) const { return (inverseInertia); }
+		inline const float				getPitch(void) const { return (pitch); }
+		inline const float				getYaw(void) const { return (yaw); }
+		inline const float				getRoll(void) const { return (roll); }
+		inline const float				getDt(void) const { return (dt); }
+		inline const Vector3f			getOmega(void) const { return (omega); }
+		inline const Vector3f			getInertia(void) const { return (inertia); }
+		inline const Vector3f			getInverseInertia(void) const { return (inverseInertia); }
 
 		void							update(float dt, const Vector3f& torque);
 

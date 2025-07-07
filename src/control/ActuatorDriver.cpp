@@ -49,14 +49,29 @@ void	ActuatorDriver::update(float dt) {
 
 	assert(dt >= 0.0f && "Error: Actuator driver update method: dt must be non-negative");
 
+	const float epsilon = 1e-6f;
+
+	float commandExecutionTime;
+	float remainingTime;
+	float effectiveTime;
+
 	currentTime += dt;
 
 	while (!commandBuffer.empty()) {
 		const TimedCommand&	cmd = commandBuffer.front();
 
-		if (cmd.timeIssued + delay <= currentTime) {
+		if (cmd.timeIssued + delay <= currentTime + epsilon) {
 			if (rbs != NULL) {
-				rbs->update(dt, cmd.torque);
+				commandExecutionTime = cmd.timeIssued + delay;
+				remainingTime = currentTime - commandExecutionTime;
+
+				if (remainingTime > 0.0f) {
+					effectiveTime = remainingTime;
+				} else {
+					effectiveTime = dt;
+				}
+
+				rbs->update(effectiveTime, cmd.torque);
 			} else {
 				assert(false && "Error: ActuatorDriver update method: RigidBodySimulator pointer is NULL during command execution.");
 			}
@@ -65,7 +80,7 @@ void	ActuatorDriver::update(float dt) {
 			break;
 		}
 	}
-	
+
 }
 
 void	ActuatorDriver::reset(void) {

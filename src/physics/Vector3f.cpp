@@ -68,31 +68,33 @@ void	Vector3f::setZ(const float z) {
 
 Vector3f Vector3f::operator+(const Vector3f& vector) const {
 
-	return Vector3f(x + vector.x, y + vector.y, z + vector.z);
+	return (Vector3f(x + vector.x, y + vector.y, z + vector.z));
 
 }
 
 Vector3f Vector3f::operator-(const Vector3f& vector) const {
 
-	return Vector3f(x - vector.x, y - vector.y, z - vector.z);
+	return (Vector3f(x - vector.x, y - vector.y, z - vector.z));
 
 }
 
 Vector3f Vector3f::operator*(float scalar) const {
 
-	return Vector3f(x * scalar, y * scalar, z * scalar);
+	return (Vector3f(x * scalar, y * scalar, z * scalar));
 
 }
 
 void	Vector3f::assertVectorCheck() {
+
 	assert(!isnan(x) && !isinf(x) && "Error: Vector3f: NaN or Inf in vector component X");
 	assert(!isnan(y) && !isinf(y) && "Error: Vector3f: NaN or Inf in vector component Y");
 	assert(!isnan(z) && !isinf(z) && "Error: Vector3f: NaN or Inf in vector component Z");
+
 }
 
 float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
 
-	float result;
+	float	result;
 
 	result = vectorA.getX() * vectorB.getX() +
 			vectorA.getY() * vectorB.getY() +
@@ -101,7 +103,7 @@ float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
 	assert(!isinf(result) && !isnan(result)
 		&& "Error: Vector3f dot product: result must be finite");
 
-	return result;
+	return (result);
 }
 
 Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
@@ -119,16 +121,16 @@ Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
 			&& !isinf(z) && !isnan(z)
 			&& "Error: Vector3f cross product: result components must be finite");
 
-	return Vector3f(x, y, z);
+	return (Vector3f(x, y, z));
 }
 
 Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB) {
-	return Vector3f(vectorA.getX() * vectorB.getX(),
+
+	return (Vector3f(vectorA.getX() * vectorB.getX(),
 					vectorA.getY() * vectorB.getY(),
-					vectorA.getZ() * vectorB.getZ());
+					vectorA.getZ() * vectorB.getZ()));
+
 }
-
-
 
 Vector3f::~Vector3f() {
 

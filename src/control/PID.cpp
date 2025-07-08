@@ -92,6 +92,7 @@ void	PID::setDerivativeSmoothing(float alpha) {
 }
 
 float	PID::compute(const float setpoint, const float measure, const float dt) {
+	
 	float	ek;
 	float	rawDerivative;
 	float	result;

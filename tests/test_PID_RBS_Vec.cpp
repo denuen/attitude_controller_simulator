@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include <cmath>
+#include <math.h>
 
 #include "../includes/physics/RigidBodySimulator.hpp"
 #include "../includes/physics/Vector3f.hpp"

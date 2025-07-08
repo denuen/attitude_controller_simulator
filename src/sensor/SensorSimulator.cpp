@@ -1,14 +1,14 @@
 #include "../../includes/sensor/SensorSimulator.hpp"
 #include <iostream>
 #include <cassert>
-
+#include <cstddef>
 
 
 SensorSimulator::SensorSimulator(RigidBodySimulator* source) :
 driftOmega(0.0f, 0.0f, 0.0f), driftAngles(0.0f, 0.0f, 0.0f),
 driftRate(0.0f, 0.0f, 0.0f), noiseStdDev(0.0f, 0.0f, 0.0f), source(source), noiseGenerator() {
 
-	assert(source != nullptr && "Error: SensorSimulator constructor: source must be a non-null pointer");
+	assert(source != NULL && "Error: SensorSimulator constructor: source must be a non-null pointer");
 
 }
 
@@ -52,7 +52,7 @@ Vector3f	SensorSimulator::readAngularVelocity(void) const {
 
 	Vector3f result;
 
-	assert(source != nullptr && "Error: SensorSimulator::readAngularVelocity: source pointer is null");
+	assert(source != NULL && "Error: SensorSimulator::readAngularVelocity: source pointer is null");
 
 	Vector3f	noise;
 	Vector3f	realOmega;
@@ -75,7 +75,7 @@ Vector3f	SensorSimulator::readAngularVelocity(void) const {
 
 Vector3f	SensorSimulator::readOrientation() const {
 
-	assert(source != nullptr && "Error: SensorSimulator::readOrientation: source pointer is null");
+	assert(source != NULL && "Error: SensorSimulator::readOrientation: source pointer is null");
 
 	Vector3f	noise;
 	Vector3f	result;

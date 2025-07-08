@@ -1,10 +1,11 @@
 #include <iostream>
 #include <cassert>
+#include <math.h>
 #include "../includes/control/PID.hpp"
 #include "../includes/control/PIDController.hpp"
 
 void assertAlmostEqual(float a, float b, float eps = 1e-5f) {
-	assert(std::fabs(a - b) < eps && "Assertion failed: values not approximately equal");
+	assert(fabs(a - b) < eps && "Assertion failed: values not approximately equal");
 }
 
 void test_basic_pid_step_response() {

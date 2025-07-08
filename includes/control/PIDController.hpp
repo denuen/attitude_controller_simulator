@@ -8,9 +8,9 @@
 class PIDController {
 
 	private:
-		PID pidPitch; // PID controller for pitch axis.
-		PID pidYaw;   // PID controller for yaw axis.
-		PID pidRoll;  // PID controller for roll axis.
+		PID	pidPitch; // PID controller for pitch axis.
+		PID	pidYaw;   // PID controller for yaw axis.
+		PID	pidRoll;  // PID controller for roll axis.
 
 	public:
 		// Constructs a PIDController with zero gains on all axes.
@@ -23,19 +23,19 @@ class PIDController {
 		PIDController(const PIDController& pidController);
 
 		// Copy assignment operator.
-		PIDController& operator=(const PIDController& pidController);
+		PIDController&	operator=(const PIDController& pidController);
 
 		// Sets new gain values for all three axes.
-		void setGains(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd);
+		void			setGains(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd);
 
 		// Sets the smoothing factor for derivative filtering on all axes.
-		void setSmoothing(const float alpha);
+		void			setSmoothing(const float alpha);
 
 		// Computes three-axis torque vector based on attitude setpoint and current measurement.
-		Vector3f compute(const Vector3f& setpoint, const Vector3f& measure, float dt);
+		Vector3f		compute(const Vector3f& setpoint, const Vector3f& measure, float dt);
 
 		// Resets integral and derivative states of all three PID controllers.
-		void reset(void);
+		void			reset(void);
 
 		// Destructor.
 		~PIDController();

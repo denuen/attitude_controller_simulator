@@ -49,11 +49,11 @@ void	ActuatorDriver::update(float dt) {
 
 	assert(dt >= 0.0f && "Error: Actuator driver update method: dt must be non-negative");
 
-	const float epsilon = 1e-6f;
+	const float	epsilon = 1e-6f;
 
-	float commandExecutionTime;
-	float remainingTime;
-	float effectiveTime;
+	float	commandExecutionTime;
+	float	remainingTime;
+	float	effectiveTime;
 
 	currentTime += dt;
 

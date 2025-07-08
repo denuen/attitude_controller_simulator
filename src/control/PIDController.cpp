@@ -47,6 +47,7 @@ void	PIDController::setSmoothing(const float alpha) {
 }
 
 Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measure, float dt) {
+	
 	Vector3f	torque;
 
 	assert(dt > 0.0f && "Error: PIDController::compute: dt must be positive");
@@ -59,9 +60,11 @@ Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measur
 }
 
 void	PIDController::reset(void) {
+
 	pidPitch.reset();
 	pidYaw.reset();
 	pidRoll.reset();
+
 }
 
 PIDController::~PIDController() {

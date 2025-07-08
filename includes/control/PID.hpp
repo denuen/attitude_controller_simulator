@@ -7,13 +7,13 @@
 class PID {
 
 	private:
-		float	kp;									// Proportional gain coefficient (error amplification factor).
-		float	ki;									// Integral gain coefficient (accumulated error correction rate).
-		float	kd;									// Derivative gain coefficient (error rate damping factor).
-		float	integral;							// Accumulated integral of error over time.
-		float	previousError;						// Previous error value for derivative term calculation.
-		float	filteredDerivative;					// Low-pass filtered derivative term to reduce noise.
-		float	derivativeAlpha;					// Filter coefficient for derivative smoothing (0.0 to 1.0).
+		float				kp;						// Proportional gain coefficient (error amplification factor).
+		float				ki;						// Integral gain coefficient (accumulated error correction rate).
+		float				kd;						// Derivative gain coefficient (error rate damping factor).
+		float				integral;				// Accumulated integral of error over time.
+		float				previousError;			// Previous error value for derivative term calculation.
+		float				filteredDerivative;		// Low-pass filtered derivative term to reduce noise.
+		float				derivativeAlpha;		// Filter coefficient for derivative smoothing (0.0 to 1.0).
 
 		static const float	DEFAULT_INTEGRAL_MIN;	// Lower saturation limit for integral windup protection.
 		static const float	DEFAULT_INTEGRAL_MAX;	// Upper saturation limit for integral windup protection.
@@ -31,7 +31,7 @@ class PID {
 		PID(const PID& pid);
 
 		// Copy assignment operator.
-		PID&	operator=(const PID& pid);
+		PID&			operator=(const PID& pid);
 
 		// Returns the proportional gain coefficient.
 		inline float	getKp(void) const { return (kp); }

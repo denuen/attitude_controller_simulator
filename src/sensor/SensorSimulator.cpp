@@ -46,15 +46,15 @@ void	SensorSimulator::update(float dt) {
 	driftOmega.assertVectorCheck();
 	driftAngles.assertVectorCheck();
 	driftRate.assertVectorCheck();
+
 }
 
 Vector3f	SensorSimulator::readAngularVelocity(void) const {
 
-	Vector3f result;
-
 	assert(source != NULL && "Error: SensorSimulator::readAngularVelocity: source pointer is null");
 
 	Vector3f	noise;
+	Vector3f	result;
 	Vector3f	realOmega;
 
 	realOmega = source->getOmega();
@@ -111,6 +111,7 @@ void	SensorSimulator::reset() {
 	driftOmega.assertVectorCheck();
 	driftAngles.assertVectorCheck();
 	driftRate.assertVectorCheck();
+
 }
 
 SensorSimulator::~SensorSimulator() {

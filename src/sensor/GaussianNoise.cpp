@@ -5,7 +5,6 @@
 #include <ctime>
 #include <cassert>
 #include <cstddef>
-#include <math.h>
 
 GaussianNoiseGenerator::GaussianNoiseGenerator(void) :
 hasSpare(false), spare(0.0f) {
@@ -75,7 +74,7 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 		s = u * u + v * v;
 	} while (s >= 1.0f || s == 0.0f);
 
-	float factor = std::sqrt(-2.0f * std::log(s) / s);
+	float	factor = std::sqrt(-2.0f * std::log(s) / s);
 	spare = v * factor;
 	hasSpare = true;
 
@@ -86,7 +85,7 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 	return (result);
 }
 
-void GaussianNoiseGenerator::initSeed() {
+void	GaussianNoiseGenerator::initSeed() {
 
 	std::srand(static_cast<unsigned int>(std::time(NULL)));
 

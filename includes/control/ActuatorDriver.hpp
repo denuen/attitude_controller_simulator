@@ -4,6 +4,8 @@
 #include "../physics/Vector3f.hpp"
 #include "../physics/RigidBodySimulator.hpp"
 #include <queue>
+#include <cstddef>
+
 
 // Simulates an actuator that applies torque commands to a rigid body after a fixed delay.
 class ActuatorDriver {

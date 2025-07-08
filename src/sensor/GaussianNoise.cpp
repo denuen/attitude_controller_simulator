@@ -1,9 +1,11 @@
 #include "../../includes/sensor/GaussianNoise.hpp"
 
 #include <cstdlib>
-#include <cmath>
+#include <math.h>
 #include <ctime>
 #include <cassert>
+#include <cstddef>
+#include <math.h>
 
 GaussianNoiseGenerator::GaussianNoiseGenerator(void) :
 hasSpare(false), spare(0.0f) {
@@ -52,8 +54,8 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 	float	result;
 
 	assert(stddev >= 0.0f && "Error: Standard deviation must be non-negative");
-	assert(!std::isnan(mean) && !std::isinf(mean) && "Error: Mean must be finite");
-	assert(!std::isnan(stddev) && !std::isinf(stddev) && "Error: Standard deviation must be finite");
+	assert(!isnan(mean) && !isinf(mean) && "Error: Mean must be finite");
+	assert(!isnan(stddev) && !isinf(stddev) && "Error: Standard deviation must be finite");
 
 	if (stddev == 0.0f) {
 		return (mean);
@@ -63,7 +65,7 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 		hasSpare = false;
 		result = mean + stddev * spare;
 
-		assert(!std::isnan(result) && !std::isinf(result) && "Error: Generated value must be finite");
+		assert(!isnan(result) && !isinf(result) && "Error: Generated value must be finite");
 		return (result);
 	}
 
@@ -79,7 +81,7 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 
 	result = mean + stddev * u * factor;
 
-	assert(!std::isnan(result) && !std::isinf(result) && "Error: Generated value must be finite");
+	assert(!isnan(result) && !isinf(result) && "Error: Generated value must be finite");
 
 	return (result);
 }

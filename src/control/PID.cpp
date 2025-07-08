@@ -1,6 +1,7 @@
 #include "../../includes/control/PID.hpp"
 #include <iostream>
 #include <cassert>
+#include <math.h>
 
 const float	PID::DEFAULT_INTEGRAL_MAX = 100.0f;
 const float PID::DEFAULT_INTEGRAL_MIN = -100.0f;
@@ -15,9 +16,9 @@ kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDeriv
 PID::PID(const float kp, const float ki, const float kd) :
 kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
 
-	assert(!std::isinf(kp) && !std::isnan(kp)
-		&& !std::isinf(ki) && !std::isnan(ki)
-		&& !std::isinf(kd) && !std::isnan(kd)
+	assert(!isinf(kp) && !isnan(kp)
+		&& !isinf(ki) && !isnan(ki)
+		&& !isinf(kd) && !isnan(kd)
 		&& "Error: PID constructor with arguments: gain values must be finite");
 
 	this->kp = kp;
@@ -50,30 +51,30 @@ PID&	PID::operator=(const PID& pid) {
 }
 void	PID::setKp(const float kp) {
 
-	assert(!std::isinf(kp) && !std::isnan(kp) && "Error: PID setKp: value must be finite");
+	assert(!isinf(kp) && !isnan(kp) && "Error: PID setKp: value must be finite");
 	this->kp = kp;
 
 }
 
 void	PID::setKi(const float ki) {
 
-	assert(!std::isinf(ki) && !std::isnan(ki) && "Error: PID setKi: value must be finite");
+	assert(!isinf(ki) && !isnan(ki) && "Error: PID setKi: value must be finite");
 	this->ki = ki;
 
 }
 
 void	PID::setKd(const float kd) {
 
-	assert(!std::isinf(kd) && !std::isnan(kd) && "Error: PID setKd: value must be finite");
+	assert(!isinf(kd) && !isnan(kd) && "Error: PID setKd: value must be finite");
 	this->kd = kd;
 
 }
 
 void	PID::setGains(const float kp, const float ki, const float kd) {
 
-		assert(!std::isinf(kp) && !std::isnan(kp)
-		&& !std::isinf(ki) && !std::isnan(ki)
-		&& !std::isinf(kd) && !std::isnan(kd)
+		assert(!isinf(kp) && !isnan(kp)
+		&& !isinf(ki) && !isnan(ki)
+		&& !isinf(kd) && !isnan(kd)
 		&& "Error: PID constructor with arguments: gain values must be finite");
 
 		this->kp = kp;
@@ -98,7 +99,7 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 	assert(dt > 0.0f && "Error: dt must be positive");
 
 	ek = setpoint - measure;
-	assert(!std::isinf(ek) && !std::isnan(ek) && "Error: the error value at the k-iteration must be finite");
+	assert(!isinf(ek) && !isnan(ek) && "Error: the error value at the k-iteration must be finite");
 
 	integral += ek * dt;
 	if (integral > DEFAULT_INTEGRAL_MAX)
@@ -118,7 +119,7 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 
 	previousError = ek;
 
-	assert(!std::isinf(result) && !std::isnan(result) && "Error: PID output invalid");
+	assert(!isinf(result) && !isnan(result) && "Error: PID output invalid");
 	return (result);
 
 }

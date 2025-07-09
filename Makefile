@@ -2,7 +2,7 @@ NAME_TEST_PID			= test_pid_rbs_vec
 NAME_TEST_CONTROLLER	= test_pidcontroller
 NAME_GTEST				= gtest
 
-CXX						= c++
+CXX						= g++
 CXXFLAGS				= -Wall -Wextra -Werror -std=c++98
 CXXFLAGS_GTEST			= -Wall -Wextra -Werror -std=c++17
 

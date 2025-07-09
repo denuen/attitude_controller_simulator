@@ -2,6 +2,7 @@
 #include <math.h>
 #include "../includes/control/PID.hpp"
 #include "../includes/control/PIDController.hpp"
+#include "../includes/control/ActuatorDriver.hpp"
 #include "../includes/physics/Vector3f.hpp"
 #include "../includes/physics/RigidBodySimulator.hpp"
 #include "../includes/sensor/SensorSimulator.hpp"
@@ -329,8 +330,8 @@ TEST(GaussianNoiseGeneratorTest, BasicGeneration) {
 	EXPECT_NE(value1, value2);
 
 	// Values should be finite
-	EXPECT_TRUE(std::isfinite(value1));
-	EXPECT_TRUE(std::isfinite(value2));
+	EXPECT_TRUE(isfinite(value1));
+	EXPECT_TRUE(isfinite(value2));
 }
 
 TEST(GaussianNoiseGeneratorTest, MeanAndStdDev) {
@@ -386,5 +387,248 @@ TEST(GaussianNoiseGeneratorTest, ResetFunctionality) {
 	// After reset, the internal state should be cleared
 	// This should be hard to test directly, but at least no crashes should occur
 	float value = generator1.generate(0.0f, 1.0f);
-	EXPECT_TRUE(std::isfinite(value));
+	EXPECT_TRUE(isfinite(value));
+}
+
+// ActuatorDriver Tests
+TEST(ActuatorDriverTest, BasicConstruction) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+	// Test basic properties
+	EXPECT_FLOAT_EQ(actuator.getDelay(), 0.1f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+
+	// Test default constructor
+	ActuatorDriver defaultActuator;
+	EXPECT_FLOAT_EQ(defaultActuator.getDelay(), 0.0f);
+	EXPECT_EQ(defaultActuator.getBufferedCommandCount(), static_cast<size_t>(0));
+}
+
+TEST(ActuatorDriverTest, CommandBuffering) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.2f);
+	// Send multiple commands
+	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
+
+	actuator.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(2));
+
+	actuator.sendCommand(Vector3f(0.0f, 0.0f, 1.0f));
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(3));
+}
+
+TEST(ActuatorDriverTest, DelayedExecution) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+
+	rbs.setPitch(0.0f);
+	rbs.setYaw(0.0f);
+	rbs.setRoll(0.0f);
+	rbs.setOmega(Vector3f(0.0f, 0.0f, 0.0f));
+
+	// Send a command
+	Vector3f testTorque(0.1f, 0.2f, 0.3f);
+	actuator.sendCommand(testTorque);
+	// Command should be buffered
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
+
+	// Update for less than delay time - command should not execute
+	actuator.update(0.05f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
+
+	// Update for remaining delay time - command should execute
+	actuator.update(0.05f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+
+	// Verify that torque was applied by checking angular velocity change
+	Vector3f omega = rbs.getOmega();
+	EXPECT_GT(abs(omega.getX()), 0.0f);
+	EXPECT_GT(abs(omega.getY()), 0.0f);
+	EXPECT_GT(abs(omega.getZ()), 0.0f);
+}
+
+TEST(ActuatorDriverTest, ZeroDelayExecution) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.0f);
+
+	rbs.setPitch(0.0f);
+	rbs.setYaw(0.0f);
+	rbs.setRoll(0.0f);
+	rbs.setOmega(Vector3f(0.0f, 0.0f, 0.0f));
+
+	// Send a command
+	Vector3f testTorque(0.1f, 0.2f, 0.3f);
+	actuator.sendCommand(testTorque);
+
+	// With zero delay, command should execute immediately on next update
+	actuator.update(0.01f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+
+	// Verify that torque was applied
+	Vector3f omega = rbs.getOmega();
+	EXPECT_GT(abs(omega.getX()), 0.0f);
+	EXPECT_GT(abs(omega.getY()), 0.0f);
+	EXPECT_GT(abs(omega.getZ()), 0.0f);
+}
+
+TEST(ActuatorDriverTest, MultipleDelayedCommands) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+
+	// Send commands at different times
+	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	actuator.update(0.02f);  // currentTime = 0.02
+
+	actuator.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
+	actuator.update(0.02f);  // currentTime = 0.04
+
+	actuator.sendCommand(Vector3f(0.0f, 0.0f, 1.0f));
+	actuator.update(0.02f);  // currentTime = 0.06
+
+	// Should have 3 commands buffered
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(3));
+
+	// Update to execute first command (0 + 0.1 = 0.1, currentTime will be 0.1)
+	actuator.update(0.04f);  // currentTime = 0.1
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(2));
+
+	// Update to execute second command (0.02 + 0.1 = 0.12, currentTime will be 0.12)
+	actuator.update(0.02f);  // currentTime = 0.12
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
+
+	// Update to execute third command (0.04 + 0.1 = 0.14, currentTime will be 0.14)
+	actuator.update(0.02f);  // currentTime = 0.14
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+}
+
+TEST(ActuatorDriverTest, DelayModification) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+
+	// Test initial delay
+	EXPECT_FLOAT_EQ(actuator.getDelay(), 0.1f);
+
+	// Change delay
+	actuator.setDelay(0.2f);
+	EXPECT_FLOAT_EQ(actuator.getDelay(), 0.2f);
+
+	// Test that new delay is applied
+	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	actuator.update(0.1f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1)); // Command should still be buffered
+
+	actuator.update(0.1f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0)); // Now command should execute
+}
+
+TEST(ActuatorDriverTest, ResetFunctionality) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+
+	// Send multiple commands and advance time
+	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	actuator.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
+	actuator.sendCommand(Vector3f(0.0f, 0.0f, 1.0f));
+	actuator.update(0.05f);
+
+	// Verify commands are buffered
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(3));
+
+	// Reset should clear all commands
+	actuator.reset();
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+
+	// After reset, new commands should work normally
+	actuator.sendCommand(Vector3f(1.0f, 1.0f, 1.0f));
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
+}
+
+TEST(ActuatorDriverTest, CopyConstructorAndAssignment) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator1(&rbs, 0.1f);
+
+	// Configure actuator1
+	actuator1.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	actuator1.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
+	actuator1.update(0.05f);
+
+	// Test copy constructor
+	ActuatorDriver actuator2(actuator1);
+	EXPECT_FLOAT_EQ(actuator2.getDelay(), 0.1f);
+	EXPECT_EQ(actuator2.getBufferedCommandCount(), static_cast<size_t>(2));
+
+	// Test assignment operator
+	ActuatorDriver actuator3;
+	actuator3 = actuator1;
+	EXPECT_FLOAT_EQ(actuator3.getDelay(), 0.1f);
+	EXPECT_EQ(actuator3.getBufferedCommandCount(), static_cast<size_t>(2));
+}
+
+TEST(ActuatorDriverTest, RealisticControlLoop) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 2.0f, 3.0f));
+	ActuatorDriver actuator(&rbs, 0.05f); // 50ms delay
+
+	rbs.setPitch(0.0f);
+	rbs.setYaw(0.0f);
+	rbs.setRoll(0.0f);
+	rbs.setOmega(Vector3f(0.0f, 0.0f, 0.0f));
+
+	// Simulate a control loop with 10ms timestep for 1 second
+	float dt = 0.01f;
+	int steps = 100;
+
+	for (int i = 0; i < steps; ++i) {
+		// Generate control commands (simple proportional control)
+		Vector3f targetAttitude(0.1f, 0.2f, 0.3f);
+		Vector3f currentAttitude(rbs.getPitch(), rbs.getYaw(), rbs.getRoll());
+		Vector3f error = targetAttitude - currentAttitude;
+		Vector3f controlTorque = error * 0.5f; // Simple P controller
+
+		// Send command through actuator
+		actuator.sendCommand(controlTorque);
+
+		// Update actuator (applies delayed commands)
+		actuator.update(dt);
+
+		// Update physics simulation
+		rbs.update(dt, Vector3f(0.0f, 0.0f, 0.0f));
+
+		// Verify system stability
+		Vector3f omega = rbs.getOmega();
+		EXPECT_LT(abs(omega.getX()), 10.0f);
+		EXPECT_LT(abs(omega.getY()), 10.0f);
+		EXPECT_LT(abs(omega.getZ()), 10.0f);
+
+		// Verify angles are reasonable
+		EXPECT_LT(abs(rbs.getPitch()), 5.0f);
+		EXPECT_LT(abs(rbs.getYaw()), 5.0f);
+		EXPECT_LT(abs(rbs.getRoll()), 5.0f);
+	}
+
+	// After 1 second, the system should be moving towards the target
+	Vector3f finalAttitude(rbs.getPitch(), rbs.getYaw(), rbs.getRoll());
+	Vector3f targetAttitude(0.1f, 0.2f, 0.3f);
+
+	// The attitude should be closer to target than initial (which was zero)
+	EXPECT_LT(abs(finalAttitude.getX() - targetAttitude.getX()), 0.1f);
+	EXPECT_LT(abs(finalAttitude.getY() - targetAttitude.getY()), 0.2f);
+	EXPECT_LT(abs(finalAttitude.getZ() - targetAttitude.getZ()), 0.3f);
+}
+
+TEST(ActuatorDriverTest, HighFrequencyCommands) {
+	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	ActuatorDriver actuator(&rbs, 0.1f);
+
+	// Send many commands rapidly
+	for (int i = 0; i < 100; ++i) {
+		actuator.sendCommand(Vector3f(0.01f, 0.01f, 0.01f));
+		actuator.update(0.001f); // 1ms updates
+	}
+	// Should have accumulated many commands
+	EXPECT_GT(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
+
+	// Update for delay time to execute all commands
+	actuator.update(0.2f);
+	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
 }

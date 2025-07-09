@@ -74,7 +74,7 @@ float	GaussianNoiseGenerator::generate(float mean, float stddev) {
 		s = u * u + v * v;
 	} while (s >= 1.0f || s == 0.0f);
 
-	float	factor = std::sqrt(-2.0f * std::log(s) / s);
+	float	factor = sqrt(-2.0f * log(s) / s);
 	spare = v * factor;
 	hasSpare = true;
 

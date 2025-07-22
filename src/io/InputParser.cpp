@@ -51,4 +51,43 @@ void	InputParser::parseVector3f(const std::string& line, Vector3f& out) {
 	if (iss >> rest) {
 		assert(false && "Error: InputParser: parseVector3f: too many components in line");
 	}
+
 }
+
+void	InputParser::parseFloat(const std::string& line, float& out) {
+
+	std::istringstream	iss(line);
+
+	if (!(iss >> out)) {
+		assert(false && "Error: InputParser: parseFloat: expected a float component");
+	}
+
+	std::string	rest;
+	if (iss >> rest) {
+		assert(false && "Error: InputParser: parseFloat: too many components in line");
+	}
+
+}
+
+void	InputParser::parseSetpointLine(const std::string& line) {
+
+	std::istringstream	iss(line);
+	float				components[4];
+
+	for (int i = 0; i < 4; i++) {
+		if (!(iss >> components[i])) {
+			assert(false && "Error: InputParser: parseSetpointLine: expected 4 float components");
+		}
+	}
+
+	setpoints.push_back(std::make_pair(components[0],
+		Vector3f(components[1], components[2], components[3])));
+
+	std::string	rest;
+	if (iss >> rest) {
+		assert(false && "Error: InputParser: parseSetpointLine: too many components in line");
+	}
+
+}
+
+

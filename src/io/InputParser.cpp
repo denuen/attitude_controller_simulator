@@ -5,7 +5,7 @@
 
 InputParser::InputParser(void) :
 kp(), ki(), kd(), inertia(), driftRate(),
-noiseStdDev(), actuatorDelay(0.0f), lastTime(0.0f),
+noiseStdDev(), actuatorDelay(0.0f), lastTime(-1.0f),
 setpoints() {
 
 }
@@ -166,7 +166,7 @@ Vector3f	InputParser::getSetpointAt(float time) const {
 
 	Vector3f	res;
 
-	for (std::vector<std::pair<float, Vector3f>>::const_iterator i = setpoints.begin(); i != setpoints.end(); ++i) {
+	for (std::vector<std::pair<float, Vector3f> >::const_iterator i = setpoints.begin(); i != setpoints.end(); ++i) {
 		if (i->first > time) {
 			break ;
 		}
@@ -290,6 +290,6 @@ void	InputParser::reset(void) {
 
 }
 
-void	InputParser::~InputParser(void) {
-	
+InputParser::~InputParser(void) {
+
 }

@@ -1,6 +1,7 @@
-NAME_TEST_PID			= test_pid_rbs_vec
-NAME_TEST_CONTROLLER	= test_pidcontroller
-NAME_GTEST				= gtest
+NAME_TEST_PID			= test_pid_rbs_vec3f
+NAME_TEST_CONTROLLER	= test_pid_controller
+NAME_TEST_INPUTPARSER	= test_input_parser
+NAME_GTEST				= test_gtest
 
 CXX						= g++
 CXXFLAGS				= -Wall -Wextra -Werror -std=c++98
@@ -29,35 +30,39 @@ INCLUDES				= -I $(INC_DIR)
 SRC_CONTROL				= $(wildcard $(SRC_DIR)/control/*.cpp)
 SRC_PHYSICS				= $(wildcard $(SRC_DIR)/physics/*.cpp)
 SRC_SENSOR				= $(wildcard $(SRC_DIR)/sensor/*.cpp)
-
-SRC						= $(SRC_CONTROL) $(SRC_PHYSICS) $(SRC_SENSOR)
+SRC_IO					= $(wildcard $(SRC_DIR)/io/*.cpp)
 
 OBJ_CONTROL				= $(SRC_CONTROL:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ_PHYSICS				= $(SRC_PHYSICS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ_SENSOR				= $(SRC_SENSOR:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+OBJ_IO					= $(SRC_IO:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-OBJ						= $(OBJ_CONTROL) $(OBJ_PHYSICS) $(OBJ_SENSOR)
+OBJ_ALL					= $(OBJ_CONTROL) $(OBJ_PHYSICS) $(OBJ_SENSOR) $(OBJ_IO)
 
 
-all: $(NAME_TEST_PID) $(NAME_TEST_CONTROLLER) $(NAME_GTEST)
+all: $(NAME_TEST_PID) $(NAME_TEST_CONTROLLER) $(NAME_TEST_INPUTPARSER) $(NAME_GTEST)
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 	mkdir -p $(OBJ_DIR)/control
 	mkdir -p $(OBJ_DIR)/physics
 	mkdir -p $(OBJ_DIR)/sensor
+	mkdir -p $(OBJ_DIR)/io
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) -c $< -o $@
 
-$(NAME_TEST_PID): $(OBJ) $(TEST_DIR)/test_PID_RBS_Vec.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(TEST_DIR)/test_PID_RBS_Vec.cpp -o $@
+$(NAME_TEST_PID): $(OBJ_CONTROL) $(OBJ_PHYSICS) $(TEST_DIR)/test_pid_rbs_vec3f.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ_CONTROL) $(OBJ_PHYSICS) $(TEST_DIR)/test_pid_rbs_vec3f.cpp -o $@
 
-$(NAME_TEST_CONTROLLER): $(OBJ) $(TEST_DIR)/testPIDController.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(TEST_DIR)/testPIDController.cpp -o $@
+$(NAME_TEST_CONTROLLER): $(OBJ_CONTROL) $(OBJ_PHYSICS) $(TEST_DIR)/control/test_pid_controller.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ_CONTROL) $(OBJ_PHYSICS) $(TEST_DIR)/control/test_pid_controller.cpp -o $@
 
-$(NAME_GTEST): $(OBJ) $(TEST_DIR)/google_test.cpp
-	$(CXX) $(CXXFLAGS_GTEST) $(INCLUDES) $(GTEST_INC) $(OBJ) $(TEST_DIR)/google_test.cpp $(GTEST_LIB) -o $@
+$(NAME_TEST_INPUTPARSER): $(OBJ_IO) $(OBJ_PHYSICS) $(TEST_DIR)/io/test_input_parser.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) $(OBJ_IO) $(OBJ_PHYSICS) $(TEST_DIR)/io/test_input_parser.cpp $(TINYXML_LIB) -o $@
+
+$(NAME_GTEST): $(OBJ_ALL) $(TEST_DIR)/gtest/test_gtest.cpp
+	$(CXX) $(CXXFLAGS_GTEST) $(INCLUDES) $(GTEST_INC) $(TINYXML_INC) $(OBJ_ALL) $(TEST_DIR)/gtest/test_gtest.cpp $(GTEST_LIB) $(TINYXML_LIB) -o $@
 
 clean:
 	@if [ -d "$(OBJ_DIR)" ]; then \
@@ -68,7 +73,7 @@ clean:
 	fi
 
 fclean: clean
-	@if [ ! -f "$(NAME_TEST_PID)" ] && [ ! -f "$(NAME_TEST_CONTROLLER)" ] && [ ! -f "$(NAME_GTEST)" ]; then \
+	@if [ ! -f "$(NAME_TEST_PID)" ] && [ ! -f "$(NAME_TEST_CONTROLLER)" ] && [ ! -f "$(NAME_TEST_INPUTPARSER)" ] && [ ! -f "$(NAME_GTEST)" ]; then \
 		echo "All executables already clean"; \
 	fi
 	@if [ -f "$(NAME_TEST_PID)" ]; then \
@@ -78,6 +83,10 @@ fclean: clean
 	@if [ -f "$(NAME_TEST_CONTROLLER)" ]; then \
 		rm -f $(NAME_TEST_CONTROLLER); \
 		echo "$(NAME_TEST_CONTROLLER) removed"; \
+	fi
+	@if [ -f "$(NAME_TEST_INPUTPARSER)" ]; then \
+		rm -f $(NAME_TEST_INPUTPARSER); \
+		echo "$(NAME_TEST_INPUTPARSER) removed"; \
 	fi
 	@if [ -f "$(NAME_GTEST)" ]; then \
 		rm -f $(NAME_GTEST); \

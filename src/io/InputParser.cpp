@@ -286,6 +286,7 @@ void	InputParser::reset(void) {
 
 	kp = ki = kd = inertia = driftRate = noiseStdDev = Vector3f(0.0f, 0.0f, 0.0f);
 	actuatorDelay = 0.0f;
+	lastTime = -1.0f;
 	setpoints.clear();
 
 }

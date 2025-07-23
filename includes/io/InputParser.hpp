@@ -19,7 +19,7 @@ class InputParser {
 
 		float									lastTime;
 
-		std::vector<std::pair<float, Vector3f>>	setpoints;
+		std::vector<std::pair<float, Vector3f> >	setpoints;
 
 		void	parseVector3f(const std::string& line, Vector3f& out);
 		void	parseFloat(const std::string& line, float& out);

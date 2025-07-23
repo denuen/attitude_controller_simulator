@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <PhysicalProperties>
+        <Inertia x="0.045" y="0.038" z="0.067" />
+    </PhysicalProperties>
+
+    <SensorCharacteristics>
+        <DriftRate x="0.001" y="0.0008" z="0.0012" />
+        <NoiseStdDev x="0.02" y="0.015" z="0.025" />
+    </SensorCharacteristics>
+
+    <ActuatorProperties>
+        <Delay>0.02</Delay>
+    </ActuatorProperties>
+
+    <SetpointSequence>
+        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
+    </SetpointSequence>
+</AttitudeControllerConfig>

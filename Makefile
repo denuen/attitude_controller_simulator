@@ -17,6 +17,8 @@ ifeq ($(UNAME), Darwin)
 	# macOS
 	GTEST_INC	= -I/opt/homebrew/include
 	GTEST_LIB	= -L/opt/homebrew/lib -lgtest -lgtest_main -pthread
+	TINYXML_INC	= -I/opt/homebrew/Cellar/tinyxml/2.6.2/include
+	TINYXML_LIB	= -L/opt/homebrew/Cellar/tinyxml/2.6.2/lib -ltinyxml
 else
 	# Linux
 	GTEST_INC	= -I/usr/include

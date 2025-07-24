@@ -1,0 +1,42 @@
+#ifndef ERRORCODES_HPP
+#define ERRORCODES_HPP
+
+enum ErrorCode {
+
+	//Success
+	ERR_SUCCESS						= 0,
+
+	// Configuration errors (1-99)
+	ERR_CNF_FILE_NOT_FOUND			= 1,
+	ERR_CNF_INVALID_FORMAT			= 2,
+	ERR_CNF_MISSING_PARAMETER		= 3,
+	ERR_CNF_OUT_OF_RANGE			= 4,
+
+	// Initialization errors (100-199)
+	ERR_INIT_CONTROLLER_FAILED		= 100,
+	ERR_INIT_DYNAMICS_FAILED		= 101,
+	ERR_INIT_SENSORS_FAILED			= 102,
+	ERR_INIT_ACTUATOR_FAILED		= 103,
+
+	// Runtime errors (200 - 299)
+	ERR_RT_SENSOR_FAILURE			= 200,
+	ERR_RT_CONTROL_DIVERGENCE		= 201,
+	ERR_RT_ATTITUDE_LIMIT_EXCEEDED	= 202,
+	ERR_RT_CONTROL_SATURATION		= 203,
+	ERR_RT_NAN_DETECTED				= 204,
+
+	// Timing errors (300 - 399)
+	ERR_T_DEADLINE_MISS				= 300,
+	ERR_T_EXCESSIVE_JITTER			= 301,
+	ERR_T_TIME_REGRESSION			= 302,
+
+	// System errors (400 - 499)
+	ERR_SYS_MEMORY_ALLOCATION		= 400,
+	ERR_SYS_FILE_IO					= 401,
+	ERR_SYS_INVALID_STATE			= 402
+
+};
+
+const char*	errorCodeToString(ErrorCode code);
+
+#endif

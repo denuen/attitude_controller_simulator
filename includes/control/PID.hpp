@@ -33,6 +33,10 @@ class PID {
 		// Copy assignment operator.
 		PID&			operator=(const PID& pid);
 
+		bool			operator==(const PID& pid) const;
+
+		inline bool		operator!=(const PID& pid) const { return (!((*this) == pid)); }
+
 		// Returns the proportional gain coefficient.
 		inline float	getKp(void) const { return (kp); }
 

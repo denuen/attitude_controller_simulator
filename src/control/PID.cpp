@@ -49,6 +49,18 @@ PID&	PID::operator=(const PID& pid) {
 
 	return (*this);
 }
+
+bool	PID::operator==(const PID& pid) const {
+
+	static const float epsilon = 1e-6f;
+
+	return (std::fabs(kp - pid.getKp()) < epsilon &&
+			std::fabs(ki - pid.getKi()) < epsilon &&
+			std::fabs(kd - pid.getKd()) < epsilon &&
+			std::fabs(integral - pid.getIntegral()) < epsilon &&
+			std::fabs(previousError - pid.getPrevErr()) < epsilon);
+}
+
 void	PID::setKp(const float kp) {
 
 	assert(!isinf(kp) && !isnan(kp) && "Error: PID setKp: value must be finite");
@@ -92,26 +104,29 @@ void	PID::setDerivativeSmoothing(float alpha) {
 }
 
 float	PID::compute(const float setpoint, const float measure, const float dt) {
-	
+
 	float	ek;
 	float	rawDerivative;
 	float	result;
 
 	assert(dt > 0.0f && "Error: dt must be positive");
 
+	// Error at the time t
 	ek = setpoint - measure;
 	assert(!isinf(ek) && !isnan(ek) && "Error: the error value at the k-iteration must be finite");
 
+	// Riemann sum in discrete time
 	integral += ek * dt;
 	if (integral > DEFAULT_INTEGRAL_MAX)
 		integral = DEFAULT_INTEGRAL_MAX;
 	else if (integral < DEFAULT_INTEGRAL_MIN)
 		integral = DEFAULT_INTEGRAL_MIN;
 
-
+	// Finite filtered derivate in discrete time
 	rawDerivative = (ek - previousError) / dt;
 	filteredDerivative = derivativeAlpha * rawDerivative + (1.0f - derivativeAlpha) * filteredDerivative;
 
+	// u[k] = Kp * e[k] + Ki * ∑(e[i] * dt) + Kd * (e[k] - e[k - 1]) / dt
 	result = kp * ek + ki * integral + kd * filteredDerivative;
 	if (result > DEFAULT_OUTPUT_MAX)
 		result = DEFAULT_OUTPUT_MAX;

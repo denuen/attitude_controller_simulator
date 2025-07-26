@@ -71,7 +71,7 @@ class PID {
 		void			setDerivativeSmoothing(float alpha);
 
 		bool			checkNumerics() const;
-		
+
 		// Computes control output with integral clamping and derivative filtering applied.
 		float			compute(const float setpoint, const float measure, const float dt);
 

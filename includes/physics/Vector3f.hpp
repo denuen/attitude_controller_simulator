@@ -48,7 +48,10 @@ class Vector3f {
 		void			assertVectorCheck();
 
 		// Returns 1 if the variables are valid, 0 otherwise.
-		bool			vectorCheck() const;
+		bool			checkNumerics() const;
+
+		// Returns the magnitude (length) of the vector.
+		float			magnitude() const;
 
 		// Destructor.
 		~Vector3f();

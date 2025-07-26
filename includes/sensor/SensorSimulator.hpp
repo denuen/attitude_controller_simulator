@@ -42,6 +42,8 @@ class SensorSimulator {
 		// Reads Euler angles from source with applied drift and per-axis Gaussian noise.
 		Vector3f			readOrientation() const;
 
+		bool				checkNumerics() const;
+		
 		// Zeroes all drift accumulators and clears noise generator cached values.
 		void				reset();
 

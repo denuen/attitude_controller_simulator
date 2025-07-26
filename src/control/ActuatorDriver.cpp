@@ -52,9 +52,10 @@ void	ActuatorDriver::update(float dt) {
 	const float	epsilon = 1e-6f;
 
 	float	commandExecutionTime;
-	float	remainingTime;
+	float	timeFromExecutionToEnd;
 	float	effectiveTime;
 
+	// Simulation clock
 	currentTime += dt;
 
 	while (!commandBuffer.empty()) {
@@ -62,14 +63,22 @@ void	ActuatorDriver::update(float dt) {
 
 		if (cmd.timeIssued + delay <= currentTime + epsilon) {
 			if (rbs != NULL) {
+				// The absolute time by which the cmd should be executed
 				commandExecutionTime = cmd.timeIssued + delay;
-				remainingTime = currentTime - commandExecutionTime;
 
-				if (remainingTime > 0.0f) {
-					effectiveTime = remainingTime;
+				// Represents the remaining time from the cmd execution to the end of the timestep
+				timeFromExecutionToEnd = currentTime - commandExecutionTime;
+
+				if (timeFromExecutionToEnd > 0.0f) {
+					// The cmd has been executed in a previous timestep or at the start of the current one
+					effectiveTime = std::min(timeFromExecutionToEnd, dt);
 				} else {
+					// The cmd is being executed through the current timestep
 					effectiveTime = dt;
 				}
+
+				// effectiveTime should be always > 0
+				effectiveTime = std::max(effectiveTime, epsilon);
 
 				rbs->update(effectiveTime, cmd.torque);
 			} else {

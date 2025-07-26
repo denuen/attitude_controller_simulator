@@ -102,6 +102,17 @@ void	Vector3f::assertVectorCheck() {
 
 }
 
+bool	Vector3f::vectorCheck(void) const {
+
+	if (isnan(x) || isinf(x)
+		|| isnan(y) || isinf(y)
+		|| isnan(z) || isinf(z)) {
+			return (0);
+		}
+
+	return (1);
+}
+
 float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
 
 	float	result;

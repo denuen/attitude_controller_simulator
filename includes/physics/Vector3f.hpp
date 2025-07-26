@@ -47,6 +47,9 @@ class Vector3f {
 		// Validates that all components are finite and not NaN.
 		void			assertVectorCheck();
 
+		// Returns 1 if the variables are valid, 0 otherwise.
+		bool			vectorCheck() const;
+
 		// Destructor.
 		~Vector3f();
 };

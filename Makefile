@@ -7,10 +7,15 @@ CXX						= g++
 CXXFLAGS				= -Wall -Wextra -Werror -std=c++98
 CXXFLAGS_GTEST			= -Wall -Wextra -Werror -std=c++17
 
-SRC_DIR					= src
-TEST_DIR				= tests
-OBJ_DIR					= obj
-INC_DIR					= includes
+ifeq ($(RELEASE), 1)
+	CXXFLAGS += -O2 -DNDEBUG
+	CXXFLAGS_GTEST += -O2 -DNDEBUG
+endif
+
+SRC_DIR					?= src
+TEST_DIR				?= tests
+OBJ_DIR					?= obj
+INC_DIR					?= includes
 
 UNAME					:= $(shell uname)
 
@@ -31,13 +36,15 @@ SRC_CONTROL				= $(wildcard $(SRC_DIR)/control/*.cpp)
 SRC_PHYSICS				= $(wildcard $(SRC_DIR)/physics/*.cpp)
 SRC_SENSOR				= $(wildcard $(SRC_DIR)/sensor/*.cpp)
 SRC_IO					= $(wildcard $(SRC_DIR)/io/*.cpp)
+SRC_MANAGER				= $(wildcard $(SRC_DIR)/manager/*.cpp)
 
 OBJ_CONTROL				= $(SRC_CONTROL:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ_PHYSICS				= $(SRC_PHYSICS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ_SENSOR				= $(SRC_SENSOR:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ_IO					= $(SRC_IO:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+OBJ_MANAGER				= $(SRC_MANAGER:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-OBJ_ALL					= $(OBJ_CONTROL) $(OBJ_PHYSICS) $(OBJ_SENSOR) $(OBJ_IO)
+OBJ_ALL					= $(OBJ_CONTROL) $(OBJ_PHYSICS) $(OBJ_SENSOR) $(OBJ_IO) $(OBJ_MANAGER)
 
 
 all: $(NAME_TEST_PID) $(NAME_TEST_CONTROLLER) $(NAME_TEST_INPUTPARSER) $(NAME_GTEST)
@@ -48,6 +55,7 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)/physics
 	mkdir -p $(OBJ_DIR)/sensor
 	mkdir -p $(OBJ_DIR)/io
+	mkdir -p $(OBJ_DIR)/manager
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) -c $< -o $@
@@ -93,7 +101,17 @@ fclean: clean
 		echo "$(NAME_GTEST) removed"; \
 	fi
 
+
 re: fclean all
 
 
-.PHONY: all clean fclean re
+release:
+	@if [ -z "$(TARGET)" ]; then \
+		echo "Usage: make release TARGET=<target_name>"; \
+		exit 1; \
+	fi
+	@echo "Performing release build of target: $(TARGET)"
+	$(MAKE) $(TARGET) RELEASE=1
+
+
+.PHONY: all clean fclean re release

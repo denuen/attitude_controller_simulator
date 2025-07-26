@@ -54,11 +54,12 @@ bool	PID::operator==(const PID& pid) const {
 
 	static const float epsilon = 1e-6f;
 
-	return (std::fabs(kp - pid.getKp()) < epsilon &&
-			std::fabs(ki - pid.getKi()) < epsilon &&
-			std::fabs(kd - pid.getKd()) < epsilon &&
-			std::fabs(integral - pid.getIntegral()) < epsilon &&
-			std::fabs(previousError - pid.getPrevErr()) < epsilon);
+	return (std::fabs(kp - pid.getKp()) < epsilon
+			&& std::fabs(ki - pid.getKi()) < epsilon
+			&& std::fabs(kd - pid.getKd()) < epsilon
+			&& std::fabs(integral - pid.getIntegral()) < epsilon
+			&& std::fabs(previousError - pid.getPrevErr()) < epsilon
+			&& std::fabs(derivativeAlpha - pid.getDerivativeSmoothing()) < epsilon);
 }
 
 void	PID::setKp(const float kp) {

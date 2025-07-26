@@ -46,8 +46,15 @@ void	PIDController::setSmoothing(const float alpha) {
 
 }
 
+bool	PIDController::checkNumerics(void) const {
+
+	return (pidPitch.checkNumerics() && pidYaw.checkNumerics()
+			&& pidRoll.checkNumerics());
+
+}
+
 Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measure, float dt) {
-	
+
 	Vector3f	torque;
 
 	assert(dt > 0.0f && "Error: PIDController::compute: dt must be positive");

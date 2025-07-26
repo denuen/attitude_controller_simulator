@@ -100,6 +100,16 @@ Vector3f	SensorSimulator::readOrientation() const {
 	return (result);
 }
 
+bool	SensorSimulator::checkNumerics(void) const{
+
+	if (!driftOmega.checkNumerics() || !driftAngles.checkNumerics()
+		|| !driftRate.checkNumerics() || !noiseStdDev.checkNumerics()
+		|| !source || !source->checkNumerics() || !noiseGenerator.checkNumerics()) {
+			return (0);
+	}
+	return (1);
+}
+
 void	SensorSimulator::reset() {
 
 	driftOmega.setVariables(0.0f, 0.0f, 0.0f);

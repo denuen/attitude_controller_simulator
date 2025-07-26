@@ -104,6 +104,20 @@ void	PID::setDerivativeSmoothing(float alpha) {
 
 }
 
+bool	PID::checkNumerics(void) const{
+
+	if (isnan(kp) || isinf(kp)
+		|| isnan(ki) || isinf(ki)
+		|| isnan(kd) || isinf(kd)
+		|| isnan(integral) || isinf(integral)
+		|| isnan(previousError) || isinf(previousError)
+		|| isnan(filteredDerivative) || isinf(filteredDerivative)
+		|| isnan(derivativeAlpha) || isinf(derivativeAlpha)) {
+			return (0);
+	}
+	return (1);
+}
+
 float	PID::compute(const float setpoint, const float measure, const float dt) {
 
 	float	ek;

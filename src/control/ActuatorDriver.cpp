@@ -92,6 +92,30 @@ void	ActuatorDriver::update(float dt) {
 
 }
 
+bool	ActuatorDriver::checkNumerics(void) const {
+
+	if (isnan(delay) || isinf(delay) || delay < 0.0f)
+		return (0);
+
+	if (isnan(currentTime) || isinf(currentTime) || currentTime < 0.0f)
+		return (0);
+
+	std::queue<TimedCommand> tmp = commandBuffer;
+	while (!tmp.empty()) {
+		const TimedCommand& cmd = tmp.front();
+
+		if (isnan(cmd.timeIssued) || isinf(cmd.timeIssued) || cmd.timeIssued < 0.0f)
+			return (0);
+
+		if (!cmd.torque.checkNumerics())
+			return (0);
+
+		tmp.pop();
+	}
+
+	return (1);
+}
+
 void	ActuatorDriver::reset(void) {
 
 	while (commandBuffer.size())

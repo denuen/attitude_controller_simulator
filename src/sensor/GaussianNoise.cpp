@@ -91,6 +91,14 @@ void	GaussianNoiseGenerator::initSeed() {
 
 }
 
+bool	GaussianNoiseGenerator::checkNumerics(void) const {
+
+	if (isnan(spare) || isinf(spare)) {
+		return (0);
+	}
+	return (1);
+}
+
 GaussianNoiseGenerator::~GaussianNoiseGenerator(void) {
 
 }

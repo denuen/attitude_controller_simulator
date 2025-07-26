@@ -91,6 +91,20 @@ void	RigidBodySimulator::setInertia(const Vector3f& inertia) {
 
 }
 
+bool	RigidBodySimulator::checkNumerics(void) const {
+
+	if (isnan(pitch) || isinf(pitch)
+		|| isnan(yaw) || isinf(yaw)
+		|| isnan(roll) || isinf(roll)
+		|| isnan(dt) || isinf(dt) || dt < 0.0f
+		|| !omega.checkNumerics() || !inertia.checkNumerics()
+		|| !inverseInertia.checkNumerics()
+		|| inertia.getX() <= 0.0f || inertia.getY() <= 0.0f || inertia.getZ() <= 0.0f) {
+			return (0);
+	}
+	return (1);
+}
+
 void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
 
 	assert(dt > 0.0f && "Error: Time step must be positive");

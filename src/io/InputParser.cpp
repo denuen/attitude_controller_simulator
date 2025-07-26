@@ -2,6 +2,7 @@
 #include <cassert>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 InputParser::InputParser(void) :
 kp(), ki(), kd(), inertia(), driftRate(),
@@ -289,6 +290,26 @@ void	InputParser::reset(void) {
 	lastTime = -1.0f;
 	setpoints.clear();
 
+}
+
+bool	InputParser::checkNumerics() const {
+
+	if (!kp.checkNumerics() || !ki.checkNumerics() || !kd.checkNumerics()
+		|| !inertia.checkNumerics() || !driftRate.checkNumerics() || !noiseStdDev.checkNumerics()
+		|| isnan(actuatorDelay) || isinf(actuatorDelay) || actuatorDelay < 0.0f
+		|| isnan(lastTime) || isinf(lastTime)
+		|| inertia.getX() <= 0.0f || inertia.getY() <= 0.0f || inertia.getZ() <= 0.0f) {
+			return (false);
+	}
+
+	for (std::vector<std::pair<float, Vector3f> >::const_iterator it = setpoints.begin();
+		 it != setpoints.end(); ++it) {
+		if (isnan(it->first) || isinf(it->first) || !it->second.checkNumerics()) {
+			return (false);
+		}
+	}
+
+	return (true);
 }
 
 InputParser::~InputParser(void) {

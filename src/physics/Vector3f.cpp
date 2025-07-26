@@ -102,7 +102,7 @@ void	Vector3f::assertVectorCheck() {
 
 }
 
-bool	Vector3f::vectorCheck(void) const {
+bool	Vector3f::checkNumerics(void) const {
 
 	if (isnan(x) || isinf(x)
 		|| isnan(y) || isinf(y)
@@ -111,6 +111,16 @@ bool	Vector3f::vectorCheck(void) const {
 		}
 
 	return (1);
+}
+
+float	Vector3f::magnitude() const {
+
+	float	result = sqrt(x * x + y * y + z * z);
+
+	assert(!isnan(result) && !isinf(result) && result >= 0.0f
+		&& "Error: Vector3f magnitude: result must be finite and non-negative");
+
+	return (result);
 }
 
 float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {

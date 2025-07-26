@@ -53,6 +53,8 @@ class InputParser {
 
 		void					loadSetpointsFile(const std::string& filename);
 
+		bool					checkNumerics() const;
+
 		void					reset();
 
 		~InputParser();

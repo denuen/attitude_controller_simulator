@@ -72,6 +72,8 @@ class RigidBodySimulator
 		// Returns the inverse inertia vector.
 		inline const Vector3f&	getInverseInertia(void) const { return (inverseInertia); }
 
+		bool					checkNumerics(void) const;
+		
 		// Integrates angular dynamics using Euler's rotational equations including gyroscopic effects.
 		void					update(float dt, const Vector3f& torque);
 

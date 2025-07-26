@@ -51,6 +51,8 @@ class ActuatorDriver {
 		// Updates the internal clock and applies any commands whose delay has expired.
 		void			update(float dt);
 
+		bool			checkNumerics() const;
+
 		// Clears all buffered commands and resets time tracking.
 		void			reset();
 

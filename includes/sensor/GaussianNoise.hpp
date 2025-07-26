@@ -24,6 +24,8 @@ class GaussianNoiseGenerator {
 		// Initializes the global random number generator with current time.
 		static void				initSeed();
 
+		bool					checkNumerics() const;
+
 		// Clears the cached spare value.
 		inline void				reset() { hasSpare = false; }
 

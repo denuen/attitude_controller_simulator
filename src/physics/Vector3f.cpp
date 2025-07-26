@@ -1,6 +1,7 @@
 #include "../../includes/physics/Vector3f.hpp"
 #include <math.h>
 #include <cassert>
+#include <iostream>
 
 Vector3f::Vector3f(const float x, const float y, const float z) {
 
@@ -82,6 +83,15 @@ Vector3f Vector3f::operator*(float scalar) const {
 
 	return (Vector3f(x * scalar, y * scalar, z * scalar));
 
+}
+
+bool	Vector3f::operator==(const Vector3f& vector) const {
+
+	static const float epsilon = 1e-6f;
+
+	return (std::fabs(x - vector.getX()) < epsilon &&
+			std::fabs(y - vector.getY()) < epsilon &&
+			std::fabs(z - vector.getZ()) < epsilon);
 }
 
 void	Vector3f::assertVectorCheck() {

@@ -27,6 +27,10 @@ class Vector3f {
 		// Scalar multiplication.
 		Vector3f		operator*(float scalar) const;
 
+		bool			operator==(const Vector3f& vector) const;
+
+		inline bool		operator!=(const Vector3f& vector) const { return (!((*this) == vector));}
+
 		// Sets all three components.
 		void			setVariables(const float x, const float y, const float z);
 

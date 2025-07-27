@@ -29,6 +29,8 @@ else
 	# Linux
 	GTEST_INC	= -I/usr/include
 	GTEST_LIB	= -lgtest -lgtest_main -pthread
+	TINYXML_INC = -I/usr/include
+	TINYXML_LIB = -L/usr/lib64 -ltinyxml
 endif
 
 INCLUDES				= -I $(INC_DIR)

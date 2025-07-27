@@ -183,7 +183,7 @@ void	InputParser::loadConfigFromTXT(const std::string& filename) {
 	std::ifstream	input;
 	std::string		line;
 
-	input.open(filename);
+	input.open(const_cast<char*>(filename.c_str()));
 	assert(input.is_open() && "Error: InputParser: loadConfigFromTXT: invalid file");
 
 	reset();

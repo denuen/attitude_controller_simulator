@@ -296,15 +296,15 @@ bool	InputParser::checkNumerics() const {
 
 	if (!kp.checkNumerics() || !ki.checkNumerics() || !kd.checkNumerics()
 		|| !inertia.checkNumerics() || !driftRate.checkNumerics() || !noiseStdDev.checkNumerics()
-		|| isnan(actuatorDelay) || isinf(actuatorDelay) || actuatorDelay < 0.0f
-		|| isnan(lastTime) || isinf(lastTime)
+		|| std::isnan(actuatorDelay) || std::isinf(actuatorDelay) || actuatorDelay < 0.0f
+		|| std::isnan(lastTime) || std::isinf(lastTime)
 		|| inertia.getX() <= 0.0f || inertia.getY() <= 0.0f || inertia.getZ() <= 0.0f) {
 			return (false);
 	}
 
 	for (std::vector<std::pair<float, Vector3f> >::const_iterator it = setpoints.begin();
 		 it != setpoints.end(); ++it) {
-		if (isnan(it->first) || isinf(it->first) || !it->second.checkNumerics()) {
+		if (std::isnan(it->first) || std::isinf(it->first) || !it->second.checkNumerics()) {
 			return (false);
 		}
 	}

@@ -16,9 +16,9 @@ kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDeriv
 PID::PID(const float kp, const float ki, const float kd) :
 kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
 
-	assert(!isinf(kp) && !isnan(kp)
-		&& !isinf(ki) && !isnan(ki)
-		&& !isinf(kd) && !isnan(kd)
+	assert(!std::isinf(kp) && !std::isnan(kp)
+		&& !std::isinf(ki) && !std::isnan(ki)
+		&& !std::isinf(kd) && !std::isnan(kd)
 		&& "Error: PID constructor with arguments: gain values must be finite");
 
 	this->kp = kp;
@@ -64,30 +64,30 @@ bool	PID::operator==(const PID& pid) const {
 
 void	PID::setKp(const float kp) {
 
-	assert(!isinf(kp) && !isnan(kp) && "Error: PID setKp: value must be finite");
+	assert(!std::isinf(kp) && !std::isnan(kp) && "Error: PID setKp: value must be finite");
 	this->kp = kp;
 
 }
 
 void	PID::setKi(const float ki) {
 
-	assert(!isinf(ki) && !isnan(ki) && "Error: PID setKi: value must be finite");
+	assert(!std::isinf(ki) && !std::isnan(ki) && "Error: PID setKi: value must be finite");
 	this->ki = ki;
 
 }
 
 void	PID::setKd(const float kd) {
 
-	assert(!isinf(kd) && !isnan(kd) && "Error: PID setKd: value must be finite");
+	assert(!std::isinf(kd) && !std::isnan(kd) && "Error: PID setKd: value must be finite");
 	this->kd = kd;
 
 }
 
 void	PID::setGains(const float kp, const float ki, const float kd) {
 
-		assert(!isinf(kp) && !isnan(kp)
-		&& !isinf(ki) && !isnan(ki)
-		&& !isinf(kd) && !isnan(kd)
+		assert(!std::isinf(kp) && !std::isnan(kp)
+		&& !std::isinf(ki) && !std::isnan(ki)
+		&& !std::isinf(kd) && !std::isnan(kd)
 		&& "Error: PID constructor with arguments: gain values must be finite");
 
 		this->kp = kp;
@@ -106,13 +106,13 @@ void	PID::setDerivativeSmoothing(float alpha) {
 
 bool	PID::checkNumerics(void) const{
 
-	if (isnan(kp) || isinf(kp)
-		|| isnan(ki) || isinf(ki)
-		|| isnan(kd) || isinf(kd)
-		|| isnan(integral) || isinf(integral)
-		|| isnan(previousError) || isinf(previousError)
-		|| isnan(filteredDerivative) || isinf(filteredDerivative)
-		|| isnan(derivativeAlpha) || isinf(derivativeAlpha)) {
+	if (std::isnan(kp) || std::isinf(kp)
+		|| std::isnan(ki) || std::isinf(ki)
+		|| std::isnan(kd) || std::isinf(kd)
+		|| std::isnan(integral) || std::isinf(integral)
+		|| std::isnan(previousError) || std::isinf(previousError)
+		|| std::isnan(filteredDerivative) || std::isinf(filteredDerivative)
+		|| std::isnan(derivativeAlpha) || std::isinf(derivativeAlpha)) {
 			return (0);
 	}
 	return (1);
@@ -128,7 +128,7 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 
 	// Error at the time t
 	ek = setpoint - measure;
-	assert(!isinf(ek) && !isnan(ek) && "Error: the error value at the k-iteration must be finite");
+	assert(!std::isinf(ek) && !std::isnan(ek) && "Error: the error value at the k-iteration must be finite");
 
 	// Riemann sum in discrete time
 	integral += ek * dt;
@@ -150,7 +150,7 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 
 	previousError = ek;
 
-	assert(!isinf(result) && !isnan(result) && "Error: PID output invalid");
+	assert(!std::isinf(result) && !std::isnan(result) && "Error: PID output invalid");
 	return (result);
 
 }

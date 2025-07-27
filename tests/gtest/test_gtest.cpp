@@ -267,13 +267,13 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 		Vector3f currentOrientation = imu.readOrientation();
 
 		// Verify readings are reasonable (not NaN or infinite)
-		EXPECT_FALSE(isnan(currentOmega.getX()));
-		EXPECT_FALSE(isnan(currentOmega.getY()));
-		EXPECT_FALSE(isnan(currentOmega.getZ()));
+		EXPECT_FALSE(std::isnan(currentOmega.getX()));
+		EXPECT_FALSE(std::isnan(currentOmega.getY()));
+		EXPECT_FALSE(std::isnan(currentOmega.getZ()));
 
-		EXPECT_FALSE(isnan(currentOrientation.getX()));
-		EXPECT_FALSE(isnan(currentOrientation.getY()));
-		EXPECT_FALSE(isnan(currentOrientation.getZ()));
+		EXPECT_FALSE(std::isnan(currentOrientation.getX()));
+		EXPECT_FALSE(std::isnan(currentOrientation.getY()));
+		EXPECT_FALSE(std::isnan(currentOrientation.getZ()));
 
 		// Verify readings are within reasonable bounds
 		EXPECT_LT(abs(currentOmega.getX()), 10.0f);

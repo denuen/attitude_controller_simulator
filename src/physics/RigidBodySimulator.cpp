@@ -1,6 +1,7 @@
 #include "../../includes/physics/RigidBodySimulator.hpp"
 #include <math.h>
 #include <cassert>
+#include <iostream>
 
 RigidBodySimulator::RigidBodySimulator():
 pitch(0.0f), yaw(0.0f), roll(0.0f), dt(0.0f), omega(0.0f, 0.0f, 0.0f), inertia(1.0f, 1.0f, 1.0f) {
@@ -55,21 +56,21 @@ void	RigidBodySimulator::compute_inverse_inertia() {
 
 void	RigidBodySimulator::setPitch(const float pitch) {
 
-	assert(!isinf(pitch) && !isnan(pitch) && "Error: Pitch value must be finite");
+	assert(!std::isinf(pitch) && !std::isnan(pitch) && "Error: Pitch value must be finite");
 	this->pitch = pitch;
 
 }
 
 void	RigidBodySimulator::setYaw(const float yaw) {
 
-	assert(!isinf(yaw) && !isnan(yaw) && "Error: Yaw value must be finite");
+	assert(!std::isinf(yaw) && !std::isnan(yaw) && "Error: Yaw value must be finite");
 	this->yaw = yaw;
 
 }
 
 void	RigidBodySimulator::setRoll(const float roll) {
 
-	assert(!isinf(roll) && !isnan(roll) && "Error: Roll value must be finite");
+	assert(!std::isinf(roll) && !std::isnan(roll) && "Error: Roll value must be finite");
 	this->roll = roll;
 
 }
@@ -93,10 +94,10 @@ void	RigidBodySimulator::setInertia(const Vector3f& inertia) {
 
 bool	RigidBodySimulator::checkNumerics(void) const {
 
-	if (isnan(pitch) || isinf(pitch)
-		|| isnan(yaw) || isinf(yaw)
-		|| isnan(roll) || isinf(roll)
-		|| isnan(dt) || isinf(dt) || dt < 0.0f
+	if (std::isnan(pitch) || std::isinf(pitch)
+		|| std::isnan(yaw) || std::isinf(yaw)
+		|| std::isnan(roll) || std::isinf(roll)
+		|| std::isnan(dt) || std::isinf(dt) || dt < 0.0f
 		|| !omega.checkNumerics() || !inertia.checkNumerics()
 		|| !inverseInertia.checkNumerics()
 		|| inertia.getX() <= 0.0f || inertia.getY() <= 0.0f || inertia.getZ() <= 0.0f) {
@@ -109,8 +110,8 @@ void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
 
 	assert(dt > 0.0f && "Error: Time step must be positive");
 
-	assert(!isinf(torque.getX()) && !isinf(torque.getY()) && !isinf(torque.getZ())
-		&& !isnan(torque.getX()) && !isnan(torque.getY()) && !isnan(torque.getZ())
+	assert(!std::isinf(torque.getX()) && !std::isinf(torque.getY()) && !std::isinf(torque.getZ())
+		&& !std::isnan(torque.getX()) && !std::isnan(torque.getY()) && !std::isnan(torque.getZ())
 		&& "Error: Torque components must be finite");
 
 	// I·ω
@@ -128,16 +129,16 @@ void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
 	// euler integration for angular velocity: ω = ω_0 + α * dt
 	omega = omega + angularAcceleration * dt;
 
-	assert(!isinf(omega.getX()) && !isinf(omega.getY()) && !isinf(omega.getZ())
-		&& !isnan(omega.getX()) && !isnan(omega.getY()) && !isnan(omega.getZ())
+	assert(!std::isinf(omega.getX()) && !std::isinf(omega.getY()) && !std::isinf(omega.getZ())
+		&& !std::isnan(omega.getX()) && !std::isnan(omega.getY()) && !std::isnan(omega.getZ())
 		&& "Error: Angular velocity components must be finite after update");
 
 	pitch += omega.getX() * dt;
 	yaw += omega.getY() * dt;
 	roll += omega.getZ() * dt;
 
-	assert(!isinf(pitch) && !isinf(yaw) && !isinf(roll)
-		&& !isnan(pitch) && !isnan(yaw) && !isnan(roll)
+	assert(!std::isinf(pitch) && !std::isinf(yaw) && !std::isinf(roll)
+		&& !std::isnan(pitch) && !std::isnan(yaw) && !std::isnan(roll)
 		&& "Error: Angle components must be finite after update");
 
 	normalize_angles();

@@ -1,5 +1,6 @@
 #include "../../includes/control/ActuatorDriver.hpp"
 #include <cassert>
+#include <cmath>
 
 ActuatorDriver::ActuatorDriver(void) :
 rbs(NULL), delay(0.0f), currentTime(0.0f) {

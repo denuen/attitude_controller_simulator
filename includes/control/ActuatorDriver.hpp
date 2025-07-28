@@ -45,6 +45,9 @@ class ActuatorDriver {
 		// Returns the number of commands currently buffered.
 		inline size_t	getBufferedCommandCount() const { return commandBuffer.size(); }
 
+		// Checks if any buffered command exceeds the given saturation limit
+		bool			hasCommandsExceedingLimit(float saturationLimit) const;
+
 		// Queues a torque command to be applied after the delay.
 		void			sendCommand(const Vector3f& torque);
 

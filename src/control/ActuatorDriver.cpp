@@ -117,6 +117,27 @@ bool	ActuatorDriver::checkNumerics(void) const {
 	return (1);
 }
 
+bool	ActuatorDriver::hasCommandsExceedingLimit(float saturationLimit) const {
+
+	assert(saturationLimit > 0.0f && "Error: ActuatorDriver saturation limit must be positive");
+	assert(!std::isnan(saturationLimit) && !std::isinf(saturationLimit)
+		&& "Error: ActuatorDriver saturation limit must be finite");
+
+	std::queue<TimedCommand> tmp = commandBuffer;
+
+	while (!tmp.empty()) {
+		const TimedCommand& cmd = tmp.front();
+
+		if (cmd.torque.magnitude() > saturationLimit) {
+			return (true);
+		}
+
+		tmp.pop();
+	}
+
+	return (false);
+}
+
 void	ActuatorDriver::reset(void) {
 
 	while (commandBuffer.size())

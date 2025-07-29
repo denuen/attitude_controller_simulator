@@ -116,4 +116,18 @@ release:
 	$(MAKE) $(TARGET) RELEASE=1
 
 
-.PHONY: all clean fclean re release
+help:
+	@echo "Usage: make [options] [target] ...\n"
+	@echo "Targets:"
+	@echo "  all                    Build all test executables"
+	@echo "  test_pid_rbs_vec3f     Build test executable for modules: PID, RigidBodySimulator, Vector3f"
+	@echo "  test_pid_controller    Build test executable for PIDController module"
+	@echo "  test_input_parser      Build test executable for InputParser module"
+	@echo "  test_gtest             Build GoogleTest executable with all module tests"
+	@echo "  clean                  Remove object files"
+	@echo "  fclean                 Remove object files and executables"
+	@echo "  re                     Clean and rebuild all targets"
+	@echo "  release TARGET=<name>  Build target with release optimizations and without assert controls on variables"
+	@echo "  help                   Show this help message"
+
+.PHONY: all clean fclean re release help

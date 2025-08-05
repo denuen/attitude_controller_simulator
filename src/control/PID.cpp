@@ -14,16 +14,12 @@ kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDeriv
 }
 
 PID::PID(const float kp, const float ki, const float kd) :
-kp(0.0f), ki(0.0f), kd(0.0f), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
+kp(kp), ki(ki), kd(kd), integral(0.0f), previousError(0.0f), filteredDerivative(0.0f), derivativeAlpha(1.0f) {
 
 	assert(!std::isinf(kp) && !std::isnan(kp)
 		&& !std::isinf(ki) && !std::isnan(ki)
 		&& !std::isinf(kd) && !std::isnan(kd)
 		&& "Error: PID constructor with arguments: gain values must be finite");
-
-	this->kp = kp;
-	this->ki = ki;
-	this->kd = kd;
 
 }
 

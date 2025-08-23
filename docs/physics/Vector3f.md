@@ -250,7 +250,6 @@ The module provides mathematical operations as free functions to maintain symmet
 #include "Vector3f.hpp"
 #include <iostream>
 #include <cmath>
-#include <cerr>
 
 // Basic vector operations
 Vector3f position(1.0f, 2.0f, 3.0f);

@@ -17,17 +17,13 @@ The simulator implements a modular closed-loop system:
 
 The directory layout below summarizes the modular organization of the simulator. This structure is actively evolving as new features and modules are added. Expect additional folders and files as the project expands to support input parsing, simulation management, and advanced logging.
 
-
-```
+```md
 attitude_controller_simulator
 |
 ├── docs
 │   ├── control                                    # API references for control modules
 │   ├── io                                         # API references for input/output modules
 │   ├── manager                                    # API references for manager modules
-│   ├── MISRA
-│   │   ├── MISRA_CPP-2008_RULES_COMPLIANCE.csv    # List of MISRA rules and their compliance status for this project
-│   │   └── MISRA_CPP-2008_RULES_COMPLIANCE.md     # Documentation of project compliance with MISRA C++:2008 rules
 │   ├── physics                                    # API references for physics simulation modules (e.g., rigid body, vectors)
 │   └── sensor                                     # API references for sensor modeling modules
 |
@@ -129,7 +125,7 @@ make help
 
 The system follows a clean data-flow architecture:
 
-**Configuration → Sensor Reading → Control Computation → Actuation → Physics Update**
+***Configuration → Sensor Reading → Control Computation → Actuation → Physics Update***
 
 Each module exposes a strict interface and is independently testable. The project includes both custom test suites for each module and unit testing suite based on Google Test, ensuring correctness and robustness across the entire system.
 

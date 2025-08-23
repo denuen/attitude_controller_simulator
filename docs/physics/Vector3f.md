@@ -19,193 +19,230 @@ The `Vector3f` module implements a three-dimensional vector class using single-p
 
 #### Constructors & Rule of Three
 
-```cpp
-Vector3f(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f)
-```
-Primary constructor with optional component initialization. Defaults to zero vector (0,0,0) if no parameters provided.
+- ```cpp
+  Vector3f(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f)
+  ```
 
-**Parameters:**
-- `x`: X-component value (default: 0.0f)
-- `y`: Y-component value (default: 0.0f)
-- `z`: Z-component value (default: 0.0f)
+  ***Primary constructor*** with optional component initialization. Defaults to zero vector (0,0,0) if no parameters provided.
 
-**Usage:** Supports both explicit and implicit initialization patterns.
+  **Parameters:**
 
-```cpp
-Vector3f(const Vector3f& vector)
-```
-Copy constructor. Creates independent copy with identical component values.
+  - `x`: X-component value (default: 0.0f)
+  - `y`: Y-component value (default: 0.0f)
+  - `z`: Z-component value (default: 0.0f)
 
-```cpp
-Vector3f& operator=(const Vector3f& vector)
-```
-Assignment operator. Provides value semantics with component-wise copying.
+  **Usage:** Supports both explicit and implicit initialization patterns.
 
-```cpp
-~Vector3f()
-```
-Destructor. No dynamic memory management required.
+- ```cpp
+  Vector3f(const Vector3f& vector)
+  ```
+
+  ***Copy constructor***. Creates independent copy with identical component values.
+
+- ```cpp
+  Vector3f& operator=(const Vector3f& vector)
+  ```
+
+  ***Assignment operator***. Provides value semantics with component-wise copying.
+
+- ```cpp
+  ~Vector3f()
+  ```
+
+  ***Destructor***. No dynamic memory management required.
+
+&nbsp;
 
 #### Mathematical Operators
 
-```cpp
-Vector3f operator+(const Vector3f& vector) const
-```
-Vector addition operator. Computes component-wise sum: `(x₁+x₂, y₁+y₂, z₁+z₂)`.
+- ```cpp
+  Vector3f operator+(const Vector3f& vector) const
+  ```
 
-**Immutability:** Does not modify either operand (argument)
+  ***Vector addition operator***. Computes component-wise sum: `(x₁+x₂, y₁+y₂, z₁+z₂)`.
 
-```cpp
-Vector3f operator-(const Vector3f& vector) const
-```
-Vector subtraction operator. Computes component-wise difference: `(x₁-x₂, y₁-y₂, z₁-z₂)`.
+  **Immutability:** Does not modify either operand (argument)
 
-**Physical Meaning:** Displacement vector from second operand to first operand
+- ```cpp
+  Vector3f operator-(const Vector3f& vector) const
+  ```
 
-```cpp
-Vector3f operator*(float scalar) const
-```
-Scalar multiplication operator. Scales all components by scalar value: `(s·x, s·y, s·z)`.
+  ***Vector subtraction operator***. Computes component-wise difference: `(x₁-x₂, y₁-y₂, z₁-z₂)`.
 
-**Parameters:**
-- `scalar`: Scaling factor applied to all components
+  **Physical Meaning:** Displacement vector from second operand to first operand
 
-**Physical Meaning:** Vector scaling preserving direction (unless scalar is negative)
+- ```cpp
+  Vector3f operator*(float scalar) const
+  ```
+
+  ***Scalar multiplication operator***. Scales all components by scalar value: `(s·x, s·y, s·z)`.
+
+  **Parameters:**
+
+  - `scalar`: Scaling factor applied to all components
+
+  **Physical Meaning:** Vector scaling preserving direction (unless scalar is negative)
+
+&nbsp;
 
 #### Comparison Operators
 
-```cpp
-bool operator==(const Vector3f& vector) const
-```
-Equality comparison operator. Performs exact floating-point comparison of all three components.
+- ```cpp
+  bool operator==(const Vector3f& vector) const
+  ```
 
-**Returns:** True if all components are exactly equal
-**Note:** May be sensitive to floating-point precision issues; an epsilon constant of `1e-6f` has been applied to make the comparison secure.
+  ***Equality comparison operator***. Performs exact floating-point comparison of all three components.
 
-```cpp
-inline bool operator!=(const Vector3f& vector) const
-```
-Inequality operator implemented as negation of equality operator.
+  **Returns:** True if all components are exactly equal
+  **Note:** May be sensitive to floating-point precision issues; an epsilon constant of `1e-6f` has been applied to make the comparison secure.
 
-**Returns:** True if all components are not equal
-**Note:** May be sensitive to floating-point precision issues; an epsilon constant of `1e-6f` has been applied to make the comparison secure.
+- ```cpp
+  inline bool operator!=(const Vector3f& vector) const
+  ```
+
+  ***Inequality operator*** implemented as negation of equality operator.
+
+  **Returns:** True if all components are not equal
+  **Note:** May be sensitive to floating-point precision issues; an epsilon constant of `1e-6f` has been applied to make the comparison secure.
+
+&nbsp;
 
 #### Component Access Methods
 
-```cpp
-void setVariables(const float x, const float y, const float z)
-```
-Sets all three components simultaneously in a single operation.
+- ```cpp
+  void setVariables(const float x, const float y, const float z)
+  ```
 
-**Parameters:**
-- `x`, `y`, `z`: New component values
+  Sets all three components simultaneously in a single operation.
 
-**Atomic Update:** Ensures consistent vector state during modification (via assert)
+  **Parameters:**
 
-```cpp
-void setX(const float x)
-void setY(const float y)
-void setZ(const float z)
-```
-Individual component setters for selective modification.
+  - `x`, `y`, `z`: New component values
 
-**Parameters:**
-- Component-specific floating-point values
+  **Atomic Update:** Ensures consistent vector state during modification (via assert)
 
-**Granular Control:** Enables modification of single components without affecting others
-**Atomic Update:** Ensures consistent vector state during modification (via assert)
+- ```cpp
+  void setX(const float x)
+  void setY(const float y)
+  void setZ(const float z)
+  ```
 
-```cpp
-inline float getX(void) const
-inline float getY(void) const
-inline float getZ(void) const
-```
-Component accessor methods with const-correctness.
+  Individual component setters for selective modification.
 
-**Returns:** Individual component values as single-precision floating-point
-**Performance:** Inline implementation for zero-overhead access
+  **Parameters:**
+
+  - Component-specific floating-point values
+
+  **Granular Control:** Enables modification of single components without affecting others
+  **Atomic Update:** Ensures consistent vector state during modification (via assert)
+
+- ```cpp
+  inline float getX(void) const
+  inline float getY(void) const
+  inline float getZ(void) const
+  ```
+
+  Component accessor methods with const-correctness.
+
+  **Returns:** Individual component values as single-precision floating-point
+  **Performance:** Inline implementation for zero-overhead access
+
+&nbsp;
 
 #### Validation Methods
 
-```cpp
-void assertVectorCheck()
-```
-Validates vector integrity using assertion-based checking. Terminates program execution if invalid values detected.
+- ```cpp
+  void assertVectorCheck()
+  ```
 
-**Validation Criteria:**
-- No NaN (Not-a-Number) values in any component
-- No infinite values in any component
-- All components are representable floating-point numbers
+  Validates ***vector integrity using assertion-based checking***. Terminates program execution if invalid values detected.
 
-**Usage:** Debug-mode validation for catching numerical errors early in development
+  **Validation Criteria:**
 
-```cpp
-bool checkNumerics() const
-```
-Non-destructive numerical validation returning boolean result (production build)
+  - No NaN (Not-a-Number) values in any component
+  - No infinite values in any component
+  - All components are representable floating-point numbers
 
-**Returns:**
-- `true` if all components are finite and valid
-- `false` if any component is NaN, infinite, or otherwise invalid
+  **Usage:** Debug-mode validation for catching numerical errors early in development
 
-**Production Use:** Suitable for runtime validation without program termination (the errors must be handled using the error handler)
+- ```cpp
+  bool checkNumerics() const
+  ```
+
+  ***Non-destructive numerical validation*** returning boolean result (production build)
+
+  **Returns:**
+
+  - `true` if all components are finite and valid
+  - `false` if any component is NaN, infinite, or otherwise invalid
+
+  **Production Use:** Suitable for runtime validation without program termination (the errors must be handled using the error handler)
+
+&nbsp;
 
 #### Mathematical Operations
 
-```cpp
-float magnitude() const
-```
-Computes Euclidean norm (length) of the vector.
+- ```cpp
+  float magnitude() const
+  ```
 
-**Formula:** `√(x² + y² + z²)`
+  Computes ***Euclidean norm*** (length) of the vector.
 
-**Returns:** Non-negative floating-point magnitude value
-**Physical Meaning:** Scalar length of vector in 3D space
-**Applications:** Distance calculations, normalization, energy computations
+  **Formula:** `√(x² + y² + z²)`
+
+  **Returns:** Non-negative floating-point magnitude value
+  **Physical Meaning:** Scalar length of vector in 3D space
+  **Applications:** Distance calculations, normalization, energy computations
+
+&nbsp;
 
 ### Free Functions
 
 The module provides mathematical operations as free functions to maintain symmetry and support functional programming patterns and to be compliant with the c++98 std.
 
-```cpp
-float dot(const Vector3f& vectorA, const Vector3f& vectorB)
-```
-Computes dot (scalar) product of two vectors.
+- ```cpp
+  float dot(const Vector3f& vectorA, const Vector3f& vectorB)
+  ```
 
-**Formula:** `A·B = Ax·Bx + Ay·By + Az·Bz`
+  Computes ***dot (scalar) product*** of two vectors.
 
-**Returns:** Scalar result representing projection relationship
-**Physical Meaning:**
-- `A·B = |A||B|cos(θ)` where θ is angle between vectors
-- Zero result indicates orthogonal vectors
-- Positive result indicates acute angle
-- Negative result indicates obtuse angle
+  **Formula:** `A·B = Ax·Bx + Ay·By + Az·Bz`
 
-```cpp
-Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB)
-```
-Computes cross (vector) product following right-hand rule.
+  **Returns:** Scalar result representing projection relationship
+  **Physical Meaning:**
 
-**Formula:**
-```
-A × B = (Ay·Bz - Az·By, Az·Bx - Ax·Bz, Ax·By - Ay·Bx)
-```
+  - `A·B = |A||B|cos(θ)` where θ is angle between vectors
+  - Zero result indicates orthogonal vectors
+  - Positive result indicates acute angle
+  - Negative result indicates obtuse angle
 
-**Returns:** Vector perpendicular to both input vectors
-**Physical Meaning:**
-- Magnitude equals area of parallelogram formed by input vectors
-- Direction follows right-hand rule
-- Essential for angular momentum, torque calculations
+- ```cpp
+  Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB)
+  ```
 
-```cpp
-Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB)
-```
-Performs element-wise (Hadamard) multiplication of vector components.
+  Computes ***cross (vector) product*** following right-hand rule.
 
-**Algorithm:** `(Ax·Bx, Ay·By, Az·Bz)`
+  **Formula:** `A × B = (Ay·Bz - Az·By, Az·Bx - Ax·Bz, Ax·By - Ay·Bx)`
 
-**Returns:** Vector with component-wise products
-**Applications:** Scaling operations, coordinate transformations, element-wise operations
+  **Returns:** Vector perpendicular to both input vectors
+  **Physical Meaning:**
+
+  - Magnitude equals area of parallelogram formed by input vectors
+  - Direction follows right-hand rule
+  - Essential for angular momentum, torque calculations
+
+- ```cpp
+  Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB)
+  ```
+
+  Performs ***element-wise (Hadamard) multiplication*** of vector components.
+
+  **Formula:** `(Ax·Bx, Ay·By, Az·Bz)`
+
+  **Returns:** Vector with component-wise products
+  **Applications:** Scaling operations, coordinate transformations, element-wise operations
+
+&nbsp;
 
 ### Usage Example
 
@@ -213,6 +250,7 @@ Performs element-wise (Hadamard) multiplication of vector components.
 #include "Vector3f.hpp"
 #include <iostream>
 #include <cmath>
+#include <cerr>
 
 // Basic vector operations
 Vector3f position(1.0f, 2.0f, 3.0f);
@@ -224,11 +262,17 @@ Vector3f displacement = velocity * dt;
 Vector3f newPosition = position + displacement;
 
 // Validation
-newPosition.checkNumerics();
+if (!newPosition.checkNumerics()) {
+    std::cerr << "Error: newPosition: Vector3f: invalid values" << std::endl;
+}
+
+// Assert validation
+//newPosition.assertVectorCheck();
+
 std::cout << "New position: ("
           << newPosition.getX() << ", "
           << newPosition.getY() << ", "
           << newPosition.getZ() << ")" << std::endl;
 ```
 
-***
+---

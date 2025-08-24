@@ -124,17 +124,19 @@ Vector3f torques(τ_pitch, τ_yaw, τ_roll);  // [N⋅m]
 
 **Independent Axis Control:**
 
-$
-\tau_x = \text{PID}_{\text{pitch}}(r_x - \theta_x, \Delta t) \\[1ex]
-\tau_y = \text{PID}_{\text{yaw}}(r_y - \theta_y, \Delta t) \\[1ex]
+$$
+\tau_x = \text{PID}_{\text{pitch}}(r_x - \theta_x, \Delta t) \\
+\tau_y = \text{PID}_{\text{yaw}}(r_y - \theta_y, \Delta t) \\
 \tau_z = \text{PID}_{\text{roll}}(r_z - \theta_z, \Delta t)
-$
+$$
 
-**Vector Form:**
+**Vector form:**
 
-$
-\vec{\tau} = \begin{bmatrix} \tau_x \\ \tau_y \\ \tau_z \end{bmatrix} = \begin{bmatrix} \text{PID}_x \\ \text{PID}_y \\ \text{PID}_z \end{bmatrix} (\vec{r} - \vec{\theta})
-$
+$$
+\vec{\tau} =
+\begin{bmatrix} \tau_x \\ \tau_y \\ \tau_z \end{bmatrix} =
+\begin{bmatrix} \text{PID}_x \\ \text{PID}_y \\ \text{PID}_z \end{bmatrix} (\vec{r} - \vec{\theta})
+$$
 
 &nbsp;
 

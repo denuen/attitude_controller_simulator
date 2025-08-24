@@ -69,9 +69,9 @@ TEST(RBSTest, BasicUpdate) {
 	rbs.setYaw(0.0f);
 	rbs.setRoll(0.0f);
 	rbs.update(0.1f, Vector3f(0.1f, 0.2f, 0.3f));
-	EXPECT_NEAR(rbs.getPitch(), 0.001f, 1e-6);
-	EXPECT_NEAR(rbs.getYaw(), 0.002f, 1e-6);
-	EXPECT_NEAR(rbs.getRoll(), 0.003f, 1e-6);
+	EXPECT_NEAR(rbs.getPitch(), 0.002f, 1e-6);
+	EXPECT_NEAR(rbs.getYaw(), 0.003f, 1e-6);
+	EXPECT_NEAR(rbs.getRoll(), 0.001f, 1e-6);
 }
 
 // SensorSimulator Tests

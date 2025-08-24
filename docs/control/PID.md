@@ -183,10 +183,10 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
 **Hardcoded Constants:**
 
 ```cpp
-static constexpr float DEFAULT_INTEGRAL_MIN = -100.0f;
-static constexpr float DEFAULT_INTEGRAL_MAX = +100.0f;
-static constexpr float DEFAULT_OUTPUT_MIN = -1000.0f;
-static constexpr float DEFAULT_OUTPUT_MAX = +1000.0f;
+static const float DEFAULT_INTEGRAL_MIN = -100.0f;
+static const float DEFAULT_INTEGRAL_MAX = +100.0f;
+static const float DEFAULT_OUTPUT_MIN = -1000.0f;
+static const float DEFAULT_OUTPUT_MAX = +1000.0f;
 ```
 
 &nbsp;

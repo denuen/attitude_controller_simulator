@@ -114,7 +114,7 @@ Designed for decoupled three-axis attitude control assuming small angle approxim
 
 ```cpp
 Vector3f gains(kp_pitch, kp_yaw, kp_roll);
-Vector3f attitude(pitch, yaw, roll);        // [rad]
+Vector3f attitude(pitch, yaw, roll);       // [rad]
 Vector3f torques(τ_pitch, τ_yaw, τ_roll);  // [N⋅m]
 ```
 
@@ -124,13 +124,11 @@ Vector3f torques(τ_pitch, τ_yaw, τ_roll);  // [N⋅m]
 
 **Independent Axis Control:**
 
-$$
-\begin{aligned}
-\tau_x &= \text{PID}_{\text{pitch}}(r_x - \theta_x, \Delta t) \\
-\tau_y &= \text{PID}_{\text{yaw}}(r_y - \theta_y, \Delta t) \\
-\tau_z &= \text{PID}_{\text{roll}}(r_z - \theta_z, \Delta t)
-\end{aligned}
-$$
+$$ \tau_x = PID_{pitch}(r_x - \theta_x, \Delta t) $$
+
+$$ \tau_y = PID_{yaw}(r_y - \theta_y, \Delta t) $$
+
+$$ \tau_z = PID_{roll}(r_z - \theta_z, \Delta t) $$
 
 **Vector form:**
 

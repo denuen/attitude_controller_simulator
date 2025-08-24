@@ -134,8 +134,7 @@ $$ \tau_z = PID_{roll}(r_z - \theta_z, \Delta t) $$
 
 $$
 \vec{\tau} =
-\begin{bmatrix} \tau_x \\ \tau_y \\ \tau_z \end{bmatrix} =
-\begin{bmatrix} \text{PID}_x \\ \text{PID}_y \\ \text{PID}_z \end{bmatrix} (\vec{r} - \vec{\theta})
+[\tau_x \\ \tau_y \\ \tau_z]^T = [PID_x \\ \\ PID_y \\ \\ PID_z]^T (\vec{r} - \vec{\theta})
 $$
 
 &nbsp;

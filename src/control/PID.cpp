@@ -23,14 +23,17 @@ kp(kp), ki(ki), kd(kd), integral(0.0f), previousError(0.0f), filteredDerivative(
 
 }
 
-PID::PID(const PID& pid) {
+PID::PID(const PID& pid):
+filteredDerivative(0.0f) {
 
 	kp = pid.kp;
 	ki = pid.ki;
 	kd = pid.kd;
 	integral = pid.integral;
 	previousError = pid.previousError;
-
+	derivativeAlpha = pid.derivativeAlpha;
+	std::cout << "FilteredDerivative: " << filteredDerivative << std::endl;
+	std::cout << "DerivativeAlpha: " << derivativeAlpha << std::endl << std::endl;
 }
 
 PID&	PID::operator=(const PID& pid) {
@@ -41,6 +44,8 @@ PID&	PID::operator=(const PID& pid) {
 		kd = pid.kd;
 		integral = pid.integral;
 		previousError = pid.previousError;
+		derivativeAlpha = pid.derivativeAlpha;
+		filteredDerivative = 0.0f;
 	}
 
 	return (*this);
@@ -155,6 +160,7 @@ void	PID::reset(void) {
 
 	integral = 0.0f;
 	previousError = 0.0f;
+	filteredDerivative = 0.0f;
 
 }
 

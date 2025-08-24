@@ -1,263 +1,358 @@
-# ActuatorDriver Module API Reference
+# ActuatorDriver Module – API Reference
 
 ## Overview
 
-The `ActuatorDriver` module simulates realistic actuator systems with time delays and command buffering. It models the temporal behavior of physical actuators such as servo motors, hydraulic systems, or control surface actuators that require finite time to respond to control commands. The implementation provides a FIFO command queue with timestamp-based execution, enabling accurate simulation of actuator dynamics in flight control systems.
+The ActuatorDriver module simulates realistic actuator behavior by applying torque commands to a rigid body after a configurable time delay. This module represents the dynamics of actuator response times, command buffering, and saturation effects essential for realistic control system simulation.
+
+**Design Rationale:**
+Designed to model real-world actuator limitations including command transmission delays, execution latency, and saturation monitoring. Implements a time-stamped command queue to accurately simulate actuator response delays. Optimized for deterministic simulation with precise timing control and comprehensive command validation.
 
 ## Class: ActuatorDriver
 
 ### Responsibilities
 
-- Buffers torque commands in a time-stamped queue with FIFO ordering
-- Simulates fixed actuator delays by deferring command execution
-- Maintains internal simulation clock for precise timing calculations
-- Applies delayed commands to associated rigid body simulators
-- Provides command queue monitoring and saturation limit checking
-- Validates numerical integrity of all buffered commands and timing data
+- Queue torque commands with precise timing information
+- Apply commands to rigid body after specified delay periods
+- Monitor command buffer status and saturation conditions
+- Provide deterministic actuator delay simulation
+- Validate command magnitude against saturation limits
+- Support actuator reset and reconfiguration during simulation
+
+---
 
 ### Public API
 
-#### Constructors & Rule of Three
+#### Constructors & Rule of Three/Five
 
-```cpp
-ActuatorDriver()
-```
-Default constructor. Initializes actuator with zero delay, null rigid body pointer, and empty command buffer. The internal clock starts at zero.
+- ```cpp
+  ActuatorDriver()
+  ```
 
-```cpp
-explicit ActuatorDriver(RigidBodySimulator* rbs, float delay)
-```
-Parameterized constructor with target rigid body and delay specification.
+  ***Default constructor***. Constructs an ActuatorDriver with zero delay and no associated rigid body.
 
-**Parameters:**
-- `rbs`: Pointer to target RigidBodySimulator (must be non-null)
-- `delay`: Command execution delay in seconds (must be non-negative)
+- ```cpp
+  explicit ActuatorDriver(RigidBodySimulator* rbs, float delay)
+  ```
 
-Validates that the rigid body pointer is non-null and delay is non-negative using assertions.
+  ***Parameterized constructor***. Constructs an ActuatorDriver with specified rigid body and delay in seconds.
 
-```cpp
-ActuatorDriver(const ActuatorDriver& actuatorDriver)
-```
-Copy constructor. Creates deep copy of command buffer, timing state, and configuration. The rigid body pointer is copied as-is (shallow copy of pointer).
+- ```cpp
+  ActuatorDriver(const ActuatorDriver& actuatorDriver)
+  ```
 
-```cpp
-ActuatorDriver& operator=(const ActuatorDriver& actuatorDriver)
-```
-Assignment operator with self-assignment protection. Copies all internal state including buffered commands and timing information.
+  ***Copy constructor*** preserving command buffer and timing state.
 
-```cpp
-~ActuatorDriver()
-```
-Destructor. Command buffer is automatically cleaned up by std::queue destructor.
+- ```cpp
+  ActuatorDriver& operator=(const ActuatorDriver& actuatorDriver)
+  ```
+
+  ***Assignment operator*** with comprehensive state transfer.
+
+- ```cpp
+  ~ActuatorDriver()
+  ```
+
+  ***Default destructor*** (no dynamic memory allocation).
+
+&nbsp;
 
 #### Configuration Methods
 
-```cpp
-void setDelay(float delay)
-```
-Sets the command execution delay in seconds. The new delay applies to all future commands; already buffered commands retain their original execution times.
+- ```cpp
+  void setDelay(float delay)
+  ```
 
-**Parameters:**
-- `delay`: New delay value in seconds (must be non-negative)
+  Sets command execution delay in seconds with non-negative validation.
 
-Validates that delay is non-negative using assertions.
+- ```cpp
+  float getDelay() const
+  ```
 
-```cpp
-inline float getDelay() const
-```
-Returns the current command delay in seconds.
+  Returns current command delay setting.
 
-#### Queue Management & Monitoring
+- ```cpp
+  size_t getBufferedCommandCount() const
+  ```
 
-```cpp
-inline size_t getBufferedCommandCount() const
-```
-Returns the number of commands currently queued for future execution. Useful for monitoring actuator loading and detecting command backlogs.
+  Returns number of commands currently in the execution queue.
 
-```cpp
-bool hasCommandsExceedingLimit(float saturationLimit) const
-```
-Checks if any buffered command exceeds the specified magnitude limit without modifying the queue.
-
-**Parameters:**
-- `saturationLimit`: Maximum allowed torque magnitude (must be positive and finite)
-
-**Returns:** True if any queued command has `torque.magnitude() > saturationLimit`
-
-**Implementation:** Creates temporary queue copy to avoid destructive iteration.
+&nbsp;
 
 #### Core Methods
 
-```cpp
-void sendCommand(const Vector3f& torque)
-```
-Queues a torque command for delayed execution. The command is timestamped with the current internal time and will be executed after the configured delay period.
+- ```cpp
+  void sendCommand(const Vector3f& torque)
+  ```
 
-**Parameters:**
-- `torque`: Three-dimensional torque vector to be applied
+  **Parameters**: Torque vector to be applied (N⋅m)
 
-**Algorithm:**
-1. Validates torque vector numerical integrity
-2. Creates TimedCommand with current timestamp
-3. Enqueues command in FIFO buffer
+  **Function**: Queues command with current timestamp for delayed execution
 
-```cpp
-void update(float dt)
-```
-Advances internal clock and processes any commands whose delay has expired. This is the core temporal processing method that must be called regularly.
+  **Validation**: Checks torque vector for numerical validity
 
-**Parameters:**
-- `dt`: Time step in seconds (must be non-negative)
+- ```cpp
+  void update(float dt)
+  ```
 
-**Algorithm:**
-1. Advances internal clock: `currentTime += dt`
-2. Processes queue front-to-back until unexpired command found
-3. For each expired command:
-   - Calculates exact execution timing within timestep
-   - Calls `rbs->update(effectiveTime, command.torque)`
-   - Removes command from queue
+  **Parameters**: Time step increment (s)
 
-**Timing Logic:**
-- Commands execute when: `commandTime + delay ≤ currentTime + epsilon`
-- Epsilon tolerance (1e-6f) handles floating-point precision issues
-- Effective time calculation ensures proper temporal integration
+  **Function**: Advances simulation time and executes expired commands
 
-```cpp
-void reset()
-```
-Clears all buffered commands and resets internal clock to zero. Does not modify delay setting or rigid body association.
+  **Algorithm**: Processes commands whose (issue_time + delay) ≤ current_time
 
-```cpp
-bool checkNumerics() const
-```
-Validates numerical integrity of delay, current time, and all buffered commands. Returns false if any value is NaN, infinite, or negative (for time values).
+- ```cpp
+  bool hasCommandsExceedingLimit(float saturationLimit) const
+  ```
 
-### Internal Architecture
+  **Parameters**: Saturation limit magnitude (N⋅m)
 
-#### TimedCommand Structure
+  **Returns**: true if any buffered command exceeds the specified limit
+
+- ```cpp
+  bool checkNumerics() const
+  ```
+
+  **Parameters**: None
+
+  **Returns**: true if all internal timing and command states are numerically valid
+
+- ```cpp
+  void reset()
+  ```
+
+  Clears all buffered commands and resets internal timing to zero.
+
+&nbsp;
+
+### Internal State
+
+**Private Members:**
+
+- `RigidBodySimulator* rbs` – Pointer to target rigid body simulator
+- `std::queue<TimedCommand> commandBuffer` – Queue of pending torque commands with timestamps
+- `float delay` – Command execution delay in seconds
+- `float currentTime` – Current simulation time for delay calculation
+
+**Private Structures:**
+
 ```cpp
 struct TimedCommand {
-    Vector3f torque;      // Torque vector to be applied
-    float timeIssued;     // Timestamp when command was queued
+    Vector3f torque;        // Torque vector to apply
+    float timeIssued;       // Timestamp when command was issued
 };
 ```
 
-**Private Members:**
-- `RigidBodySimulator* rbs`: Target simulator for command execution
-- `std::queue commandBuffer`: FIFO command queue
-- `float delay`: Execution delay in seconds
-- `float currentTime`: Internal simulation clock
+&nbsp;
+
+### Timing and Execution Algorithm
+
+**Command Queuing:**
+
+$ t_{issue} = t_{current} $
+
+$ t_{execute} = t_{issue} + \text{delay} $
+
+**Command Execution Logic:**
+
+1. **Time advancement**: $ t_{current} \leftarrow t_{current} + \Delta t $
+2. **Command processing**: For each queued command where $ t_{execute} \leq t_{current} $
+3. **Effective time calculation**: $ t_{effective} = \min(\Delta t, t_{current} - t_{execute}) $
+4. **Torque application**: Apply torque for $ t_{effective} $ duration
+5. **Command removal**: Remove processed command from queue
+
+**Fractional Time Step Handling:**
+Commands executing mid-timestep receive proportional application time to maintain energy conservation and timing accuracy.
+
+&nbsp;
 
 ### Usage Example
 
 ```cpp
-// Initialize actuator with 50ms delay
-RigidBodySimulator aircraft(Vector3f(1.0f, 2.0f, 3.0f));
-ActuatorDriver actuator(&aircraft, 0.05f);
+#include "includes/control/ActuatorDriver.hpp"
+#include "includes/physics/RigidBodySimulator.hpp"
+#include <iostream>
+#include <iomanip>
+#include <cassert>
 
-// Control loop with realistic actuator delays
-float dt = 0.01f;  // 100 Hz control frequency
-Vector3f controlTorque(0.5f, 0.0f, -0.2f);
+int main() {
+    // Initialize spacecraft and actuator system
+    Vector3f           inertia(50.0f, 40.0f, 60.0f);
+    RigidBodySimulator spacecraft(inertia);
 
-for (int i = 0; i  10) {
-        std::cout << "Warning: Command backlog detected" << std::endl;
-    }
+    // Realistic actuator delay (50ms typical for electric actuators)
+    float actuatorDelay = 0.05f;
+    ActuatorDriver actuator(&spacecraft, actuatorDelay);
 
-    // Check for saturation issues
-    if (actuator.hasCommandsExceedingLimit(10.0f)) {
-        std::cout << "Warning: Commands exceed saturation limit" << std::endl;
+    float dt = 0.001f; // 1ms simulation timestep
+
+    // Control system loop
+    for (int step = 0; step < 10000; ++step) {
+        Vector3f controlTorque(1.0f, -0.5f, 0.2f);
+        actuator.sendCommand(controlTorque);
+        actuator.update(dt);
+
+        size_t bufferedCommands = actuator.getBufferedCommandCount();
+        bool   saturated = actuator.hasCommandsExceedingLimit(10.0f);
+
+        // Feedback: orientation state and angular velocity
+        if (step % 1000 == 0) {
+            std::cout << std::left << std::setw(10)
+                      << ("Step: " + std::to_string(step)) << " | "
+                      << std::fixed << std::setprecision(6)
+                      << "Orientation: ["
+                      << spacecraft.getPitch() << ", "
+                      << spacecraft.getYaw() << ", "
+                      << spacecraft.getRoll() << "]"
+                      << " | Angular vel: ["
+                      << spacecraft.getOmega().getX() << ", "
+                      << spacecraft.getOmega().getY() << ", "
+                      << spacecraft.getOmega().getZ() << "]"
+                      << " | Buffer: " << bufferedCommands
+                      << (saturated ? " | SATURATED" : "")
+                      << std::endl;
+        }
+
+        // backlog warnings
+        if (bufferedCommands > 50) {
+            std::cout << "[Warning] Command buffer backlog: "
+                      << bufferedCommands << std::endl;
+        }
+        if (saturated) {
+            std::cout << "[Warning] Command exceeds saturation limit!"
+                      << std::endl;
+        }
+
+        assert(actuator.checkNumerics()); // verifies numerical state consistency
+
+        // Arbitrary reset policy for demonstration purposes
+        if (bufferedCommands > 100) {
+            std::cout
+                << "[Reset] Excessive command backlog detected. Buffer reset."
+                << std::endl;
+            actuator.reset();
+        }
     }
 }
-
-// Reset for new simulation run
-actuator.reset();
-assert(actuator.getBufferedCommandCount() == 0);
 ```
 
-### Advanced Usage - Variable Delay Simulation
+### Expected Output (conceptual):
 
 ```cpp
-// Simulate actuator with load-dependent delays
-ActuatorDriver adaptiveActuator(&aircraft, 0.0f);
+Step: 0    | Orientation: [0.000000, 0.000000, 0.000000] | Angular vel: [0.000000, 0.000000, 0.000000] | Buffer: 1
+Step: 1000 | Orientation: [-0.003848, 0.001025, 0.006158] | Angular vel: [0.015686, -0.009799, 0.002607] | Buffer: 49
 
-for (float commandMagnitude = 1.0f; commandMagnitude <= 10.0f; commandMagnitude += 1.0f) {
-    // Larger commands take longer to execute
-    float adaptiveDelay = 0.01f + (commandMagnitude * 0.005f);
-    adaptiveActuator.setDelay(adaptiveDelay);
+...
 
-    Vector3f command(commandMagnitude, 0.0f, 0.0f);
-    adaptiveActuator.sendCommand(command);
-    actuator.update(0.01f);
-}
+Step: 9000 | Orientation: [-0.284981, 0.069387, 0.463030] | Angular vel: [0.137209, -0.083258, 0.018297] | Buffer: 49
 ```
 
-### Physical Modeling & Assumptions
+**Buffer Status:**
 
-**Delay Model:**
-- Fixed, uniform delay independent of command magnitude or direction
-- No rate limiting or slew rate constraints
-- Instantaneous command execution after delay expiration
+- *Typical*: 0–5 commands (no delay or very fast actuators)
+- *49–50 commands*: expected for 50 ms delay with 1 ms timestep (as in this example)
+- *50*: may indicate timing mismatch, excessive delay, or simulation bottleneck
 
-**Command Buffering:**
-- Unlimited buffer capacity (memory permitting)
-- FIFO execution order strictly maintained
-- Perfect command fidelity (no degradation or noise)
+**Saturation Monitoring:**
 
-**Temporal Accuracy:**
-- Sub-timestep execution timing for commands expiring mid-step
-- Floating-point epsilon tolerance for timing comparisons
-- Monotonic time progression assumption
+If any command exceeds the configured limit (e.g., 10 N·m), the output line will include the label `SATURATED`.
 
-### Performance Characteristics
+**Final Considerations:**
 
-**Computational Complexity:**
-- `sendCommand()`: O(1) - constant time queue insertion
-- `update()`: O(n) where n is number of expired commands
-- `hasCommandsExceedingLimit()`: O(n) where n is total queued commands
+- Buffer size reflects actuator delay and simulation timestep:
+  $ \text{buffer size} \approx \frac{\text{delay}}{dt} $ under steady‑state conditions.
+- Orientation and angular velocity evolve smoothly under constant torque, consistent with rigid body dynamics absent external disturbances.
+- No saturation is observed in this example since all commands remain within the 10 N·m limit.
+- If the buffer grows above expected values, review actuator delay, timestep, or command rate for mismatches.
+- Output columns are fixed‑width for easy parsing and log analysis.
+- All values are printed with 6 decimal digits for clarity and reproducibility.
 
-**Memory Usage:**
-- Fixed overhead: ~32 bytes per instance
-- Variable: ~20 bytes per queued command
-- No dynamic allocation beyond std::queue growth
+### Advanced Usage – Actuator Modeling Guidelines
 
-### Limitations
+- **Delay selection**: Use realistic values based on actuator type (electric: 10-100ms, hydraulic: 1-20ms)
+- **Command rate**: Match command rate to actual control system update frequency
+- **Saturation monitoring**: Set limits based on physical actuator capabilities
+- **Buffer monitoring**: Large buffers indicate timing mismatch or excessive delay
+- **Reset strategy**: Periodic reset can prevent command accumulation in fault scenarios
 
-**Physical Realism:**
-- No actuator dynamics (bandwidth, resonance, nonlinearity)
-- No rate limiting or velocity constraints
-- No power consumption or thermal effects
-- No failure modes or degraded operation
+### Physical Interpretation
 
-**Timing Model:**
-- Fixed delay assumption (real actuators have variable response times)
-- No jitter or stochastic delays
-- Perfect clock synchronization assumed
+- **Transport delay**: Represents signal transmission and processing delays
+- **Actuator dynamics**: Models finite response time of physical actuators
+- **Command buffering**: Simulates internal actuator command processing
+- **Saturation detection**: Monitors for actuator limit violations
+- **Time precision**: Maintains accurate timing for control system validation
 
-**Command Handling:**
-- No command prioritization or preemption
-- No command interpolation or smoothing
-- No feedback on actuator state or health
+### Physical Basis & Control Assumptions
+
+#### Control Paradigm / Operating Principle
+
+The module implements **pure time delay modeling** with ideal actuator response characteristics. It assumes actuators behave as perfect torque sources with only transport delay effects, without bandwidth limitations, slew rate constraints, or dynamic response characteristics.
+
+#### Underlying Physics
+
+- **Linear Actuator Model**: Assumes perfect torque generation capability up to saturation limits
+- **Transport Delay Only**: Models signal transmission and processing delays without actuator dynamics
+- **Ideal Command Execution**: Once delay expires, commanded torque applied instantaneously and perfectly
+- **Energy Conservation**: Fractional timestep execution preserves energy balance during partial command application
+- **First-In-First-Out (FIFO)**: Command queue maintains temporal ordering of control inputs
+
+#### Stability and Validity Assumptions
+
+- **Fixed Time Delay**: Assumes constant, deterministic delay independent of command magnitude or system state
+- **No Actuator Dynamics**: Valid when actuator bandwidth >> control bandwidth (typically 10× rule)
+- **Linear Saturation**: Simple magnitude-based saturation detection without hysteresis or deadband
+- **Perfect Torque Generation**: Assumes actuators can generate commanded torques exactly
+- **No Rate Limitations**: Does not model slew rate or bandwidth constraints of physical actuators
+
+#### Parameter Interpretation
+
+- **Delay (seconds)**: Total latency from command issue to torque application
+  - Signal transmission: Cable/wireless propagation delays
+  - Processing time: Digital signal processing and control algorithm execution
+  - Actuator settling: Time for actuator to reach commanded output
+- **Command Buffer**: Represents internal actuator command processing pipeline
+- **Saturation Limit (N⋅m)**: Maximum torque capability based on actuator specifications
+- **Time Precision**: Limited by simulation timestep and floating-point precision
+
+#### Limitations
+
+- **No Actuator Bandwidth**: Missing frequency-dependent response characteristics requiring transfer function modeling
+- **No Slew Rate Limits**: Cannot model maximum rate of change constraints on torque output
+- **No Power Limitations**: Assumes unlimited power availability for torque generation
+- **No Failure Modes**: Does not model actuator faults, degradation, or partial failures
+- **Fixed Delay**: Real actuators may have load-dependent or temperature-dependent delays
+
+***Note:*** For fully realistic and non-deterministic actuator simulation, integration with additional modules such as `GaussianNoise` and `SensorSimulator` is required. These modules introduce stochastic effects and sensor inaccuracies, enabling the ActuatorDriver to model real-world uncertainties and measurement noise in closed-loop control scenarios.
+
+### Actuator Types and Typical Delays
+
+| Actuator Type  | Typical Delay Range |  Application                      |
+|----------------|---------------------|-----------------------------------|
+| Electric Motor | 10-100 ms           | Control surfaces, reaction wheels |
+| Hydraulic      | 1-20 ms             | Primary flight controls           |
+| Pneumatic      | 50-200 ms           | Secondary systems                 |
+| Thruster       | 1-10 ms             | Spacecraft attitude control       |
 
 ### Compliance & Safety
 
-- Thread-safe for single-instance use (no shared mutable state)
-- Exception-safe operations with RAII cleanup
-- Comprehensive input validation with assertions
-- No raw pointer ownership (non-owning reference to rigid body)
-- C++11 compatible with standard library containers
+- **Numerical validation**: Comprehensive validation of timing states and command vectors
+- **Dynamic allocations**: Uses STL queue with controlled growth
+- **Determinism**: Guaranteed deterministic behavior with precise timing
+- **Thread-safety**: Not thread-safe - requires external synchronization
+- **Command validation**: All torque commands validated before queuing
 
-### Integration Considerations
+### Performance Characteristics
 
-**Timestep Sensitivity:**
-- Smaller timesteps provide higher timing accuracy
-- Large timesteps may cause temporal aliasing effects
-- Recommended: `dt ≤ delay/10` for accurate simulation
+- **Computational complexity**: O(n) where n is number of buffered commands
+- **Memory footprint**: Scales with command buffer size (typically <100 commands)
+- **Timing precision**: Limited by floating-point precision and timestep size
+- **Queue efficiency**: STL queue provides efficient FIFO command processing
 
-**Queue Management:**
-- Monitor buffer depth in real-time systems
-- Consider implementing buffer size limits for memory-constrained environments
-- Reset periodically in long-running simulations to prevent memory growth
+### Limitations & Future Extensions
 
-***
-
-_This documentation reflects the actual implementation in `ActuatorDriver.hpp` and `ActuatorDriver.cpp`. All method signatures and behavior descriptions are validated against the source code._
+- **Current limitation**: Single uniform delay for all command types
+- **Current limitation**: No actuator rate limiting or slew rate constraints
+- **Current limitation**: No command blending or interpolation
+- **Planned extension**: Per-axis delay configuration for asymmetric actuators
+- **Planned extension**: Rate limiting and acceleration constraints
+- **Planned extension**: Command interpolation for smooth actuator response

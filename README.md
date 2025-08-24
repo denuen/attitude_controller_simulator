@@ -2,6 +2,9 @@
 
 A modular and extensible C++98 framework for simulating closed-loop 3D attitude control of rigid bodies, this project is designed to provide a deterministic execution environment for the development, numerical validation, and benchmarking of control algorithms under realistic physical and sensor constraints. Emphasizing MISRA C++:2008 coding standards for reliability and safety, the simulator features a strict modular architecture that facilitates independent testing and integration of physics, control, sensor, and actuator models. Its design supports repeatable, traceable simulation runs, enabling rigorous verification of control strategies and system behaviors. The framework is particularly suited for educational purposes and rapid prototyping, offering a robust platform for exploring flight dynamics, validating PID tuning, and investigating closed-loop control in a controlled, single-threaded context.
 
+**Note:**
+Modules such as `GaussianNoise` and `SensorSimulator` may introduce stochastic elements (e.g., Gaussian noise, drift), making simulation results non-deterministic unless the random number generator seed is fixed. Deterministic modules such as `ActuatorDriver`, `RigidBodySimulator`, and control algorithms always produce repeatable results given the same inputs.
+
 ## Overview
 
 The simulator implements a modular closed-loop system:

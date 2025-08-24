@@ -133,9 +133,9 @@ void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
 		&& !std::isnan(omega.getX()) && !std::isnan(omega.getY()) && !std::isnan(omega.getZ())
 		&& "Error: Angular velocity components must be finite after update");
 
-	pitch += omega.getX() * dt;
-	yaw += omega.getY() * dt;
-	roll += omega.getZ() * dt;
+	roll += omega.getX() * dt;
+	pitch += omega.getY() * dt;
+	yaw += omega.getZ() * dt;
 
 	assert(!std::isinf(pitch) && !std::isinf(yaw) && !std::isinf(roll)
 		&& !std::isnan(pitch) && !std::isnan(yaw) && !std::isnan(roll)

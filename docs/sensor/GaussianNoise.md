@@ -180,15 +180,11 @@ Notes:
 - The printed numbers above are a representative result from a single run using a fixed seed; exact values depend on the platform's implementation of `rand()` and on the seed. With the same libc and the same seed the sequence is reproducible.
 - For unit tests prefer statistical assertions (e.g., sample_mean approximately equals requested mean within a small tolerance, sample_std approximately equals requested sigma within a percent tolerance) rather than exact-value equality.
 
-&nbsp;
-
 ### Physical and Modeling Assumptions
 
 - White-noise assumption: generated samples are independent and identically distributed (i.i.d.) across calls to `generate()` when a single generator instance is used and the underlying PRNG is independent. This is appropriate for modeling sensor white noise (e.g., high-frequency thermal noise) but does not model bias instability or temporally correlated noise.
 - Zero-mean additive noise model: the API returns values distributed around the provided `mean` parameter; typical sensor usage is zero-mean with a specified standard deviation.
 - Uncorrelated channels: use separate generator instances for independent noise sources to avoid reusing the cached spare across logically distinct signals.
-
-&nbsp;
 
 ### Limitations, Safety, and Future Work
 

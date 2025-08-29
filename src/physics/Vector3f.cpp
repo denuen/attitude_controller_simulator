@@ -47,8 +47,9 @@ Vector3f	Vector3f::operator*(float scalar) const {
 }
 
 Vector3f	Vector3f::operator/(float scalar) const {
-	return (Vector3f(x_ / scalar, y_ / scalar, z_ / scalar));
-}
+	static const float EPSILON = 1e-6f;
+	assert(std::fabs(scalar) > EPSILON && "Error: division by zero or near-zero scalar");
+	return (Vector3f(x_ / scalar, y_ / scalar, z_ / scalar));}
 
 bool	Vector3f::operator==(const Vector3f& v)const {
 	static const float epsilon = 1e-6f;
@@ -147,11 +148,6 @@ Vector3f cross(const Vector3f& a, const Vector3f& b) {
 	x = a.getY() * b.getZ() - a.getZ() * b.getY();
 	y = a.getZ() * b.getX() - a.getX() * b.getZ();
 	z = a.getX() * b.getY() - a.getY() * b.getX();
-
-	assert(!std::isinf(x) && !std::isnan(x)
-		&& !std::isinf(y) && !std::isnan(y)
-		&& !std::isinf(z) && !std::isnan(z)
-		&& "Error: cross product components must be finite");
 
 	return (Vector3f(x, y, z));
 }

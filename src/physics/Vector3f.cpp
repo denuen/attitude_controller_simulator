@@ -1,168 +1,163 @@
 #include "../../includes/physics/Vector3f.hpp"
-#include <math.h>
+#include <cmath>
 #include <cassert>
 #include <iostream>
 
-Vector3f::Vector3f(const float x, const float y, const float z) {
+Vector3f::Vector3f(float x, float y, float z) :
+ x_(x), y_(y), z_(z) {
 
-	assert(!std::isinf(x) && !std::isinf(y) && !std::isinf(z)
-			&& !std::isnan(x) && !std::isnan(y) && !std::isnan(z)
-			&& "Error: Vector3f constructor: values must be finite");
-
-	this->x = x;
-	this->y = y;
-	this->z = z;
-
+	assert(!std::isnan(x_) && !std::isinf(x_) && "Error: NaN or Inf in x_ component");
+	assert(!std::isnan(y_) && !std::isinf(y_) && "Error: NaN or Inf in y_ component");
+	assert(!std::isnan(z_) && !std::isinf(z_) && "Error: NaN or Inf in z_ component");
 }
 
-Vector3f::Vector3f(const Vector3f& vector) {
+Vector3f::Vector3f(const Vector3f& v) :
+ x_(v.x_), y_(v.y_), z_(v.z_) {
 
-	x = vector.x;
-	y = vector.y;
-	z = vector.z;
-
+	assert(!std::isnan(x_) && !std::isinf(x_) && "Error: NaN or Inf in x_ component");
+	assert(!std::isnan(y_) && !std::isinf(y_) && "Error: NaN or Inf in y_ component");
+	assert(!std::isnan(z_) && !std::isinf(z_) && "Error: NaN or Inf in z_ component");
 }
 
-Vector3f& Vector3f::operator=(const Vector3f& vector) {
+Vector3f&	Vector3f::operator=(const Vector3f& v) {
 
-	if (this != &vector) {
-		x = vector.x;
-		y = vector.y;
-		z = vector.z;
+	if (this != &v) {
+		x_ = v.x_;
+		y_ = v.y_;
+		z_ = v.z_;
 	}
+
+	assert(!std::isnan(x_) && !std::isinf(x_) && "Error: NaN or Inf in x_ component");
+	assert(!std::isnan(y_) && !std::isinf(y_) && "Error: NaN or Inf in y_ component");
+	assert(!std::isnan(z_) && !std::isinf(z_) && "Error: NaN or Inf in z_ component");
 
 	return (*this);
 }
 
-void	Vector3f::setVariables(const float x, const float y, const float z) {
+Vector3f	Vector3f::operator+(const Vector3f& v) const {
+	return (Vector3f(x_ + v.x_, y_ + v.y_, z_ + v.z_));
+}
 
-	assert(!std::isinf(x) && !std::isinf(y) && !std::isinf(z) &&
-			!std::isnan(x) && !std::isnan(y) && !std::isnan(z) &&
-			"Error: Vector3f setVariables: values must be finite");
+Vector3f	Vector3f::operator-(const Vector3f& v) const {
+	return (Vector3f(x_ - v.x_, y_ - v.y_, z_ - v.z_));
+}
 
-	this->x = x;
-	this->y = y;
-	this->z = z;
+Vector3f	Vector3f::operator*(float scalar) const {
+	return (Vector3f(x_ * scalar, y_ * scalar, z_ * scalar));
+}
 
+Vector3f	Vector3f::operator/(float scalar) const {
+	return (Vector3f(x_ / scalar, y_ / scalar, z_ / scalar));
+}
+
+bool	Vector3f::operator==(const Vector3f& v)const {
+	static const float epsilon = 1e-6f;
+
+	return (std::fabs(x_ - v.x_) < epsilon &&
+			std::fabs(y_ - v.y_) < epsilon &&
+			std::fabs(z_ - v.z_) < epsilon);
 }
 
 void	Vector3f::setX(const float x) {
-
-	assert(!std::isinf(x) && !std::isnan(x) && "Vector3f setX: value must be finite");
-	this->x = x;
-
+	assert(!std::isinf(x) && !std::isnan(x) && "Error: x value must be finite");
+	x_ = x;
 }
 
 void	Vector3f::setY(const float y) {
-
-	assert(!std::isinf(y) && !std::isnan(y) && "Error: Vector3f setY: value must be finite");
-	this->y = y;
-
+	assert(!std::isinf(y) && !std::isnan(y) && "Error: y value must be finite");
+	y_ = y;
 }
 
 void	Vector3f::setZ(const float z) {
-
-	assert(!std::isinf(z) && !std::isnan(z) && "Error: Vector3f setZ: value must be finite");
-	this->z = z;
-
+	assert(!std::isinf(z) && !std::isnan(z) && "Error: z value must be finite");
+	z_ = z;
 }
 
-Vector3f Vector3f::operator+(const Vector3f& vector) const {
+void	Vector3f::setVariables(const float x, const float y, const float z) {
 
-	return (Vector3f(x + vector.x, y + vector.y, z + vector.z));
+	assert(!std::isinf(x) && !std::isnan(x)
+		&& !std::isinf(y) && !std::isnan(y)
+		&& !std::isinf(z) && !std::isnan(z)
+		&& "Error: values must be finite");
 
-}
-
-Vector3f Vector3f::operator-(const Vector3f& vector) const {
-
-	return (Vector3f(x - vector.x, y - vector.y, z - vector.z));
-
-}
-
-Vector3f Vector3f::operator*(float scalar) const {
-
-	return (Vector3f(x * scalar, y * scalar, z * scalar));
-
-}
-
-bool	Vector3f::operator==(const Vector3f& vector) const {
-
-	static const float epsilon = 1e-6f;
-
-	return (std::fabs(x - vector.getX()) < epsilon &&
-			std::fabs(y - vector.getY()) < epsilon &&
-			std::fabs(z - vector.getZ()) < epsilon);
-}
-
-void	Vector3f::assertVectorCheck() {
-
-	assert(!std::isnan(x) && !std::isinf(x) && "Error: Vector3f: NaN or Inf in vector component X");
-	assert(!std::isnan(y) && !std::isinf(y) && "Error: Vector3f: NaN or Inf in vector component Y");
-	assert(!std::isnan(z) && !std::isinf(z) && "Error: Vector3f: NaN or Inf in vector component Z");
-
-}
-
-bool	Vector3f::checkNumerics(void) const {
-
-	if (std::isnan(x) || std::isinf(x)
-		|| std::isnan(y) || std::isinf(y)
-		|| std::isnan(z) || std::isinf(z)) {
-			return (0);
-		}
-
-	return (1);
+	x_ = x;
+	y_ = y;
+	z_ = z;
 }
 
 float	Vector3f::magnitude() const {
+	Vector3f	tmp(std::fabs(x_), std::fabs(y_), std::fabs(z_));
+	float		maxVar = tmp.x_;
 
-	float	result = sqrt(x * x + y * y + z * z);
+	//Scaling to avoid overflow/underflow in sqrt
+	if (tmp.y_ > maxVar) {
+		maxVar = tmp.y_;
+	}
+	if (tmp.z_ > maxVar) {
+		maxVar = tmp.z_;
+	}
+	if (maxVar == 0.0f) {
+		return (0.0f);
+	}
 
-	assert(!std::isnan(result) && !std::isinf(result) && result >= 0.0f
-		&& "Error: Vector3f magnitude: result must be finite and non-negative");
+	tmp = Vector3f(x_ / maxVar, y_ / maxVar, z_ / maxVar);
 
-	return (result);
+	float	res = maxVar * std::sqrt(tmp.x_ * tmp.x_ + tmp.y_ * tmp.y_ + tmp.z_ * tmp.z_);
+
+	assert(!std::isnan(res) && !std::isinf(res) && res >= 0.0f
+		&& "Error: magnitude must be finite and non-negative");
+
+	return (res);
 }
 
-float	dot(const Vector3f& vectorA, const Vector3f& vectorB) {
-
-	float	result;
-
-	result = vectorA.getX() * vectorB.getX() +
-			vectorA.getY() * vectorB.getY() +
-			vectorA.getZ() * vectorB.getZ();
-
-	assert(!std::isinf(result) && !std::isnan(result)
-		&& "Error: Vector3f dot product: result must be finite");
-
-	return (result);
+void	Vector3f::assertCheck() {
+	assert(!std::isnan(x_) && !std::isinf(x_) && "Error: NaN or Inf in x_ component");
+	assert(!std::isnan(y_) && !std::isinf(y_) && "Error: NaN or Inf in y_ component");
+	assert(!std::isnan(z_) && !std::isinf(z_) && "Error: NaN or Inf in z_ component");
 }
 
-Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB) {
+bool	Vector3f::checkNumerics() const {
+	if (std::isnan(x_) || std::isinf(x_)
+		|| std::isnan(y_) || std::isinf(y_)
+		|| std::isnan(z_) || std::isinf(z_)) {
+			return (0);
+		}
+	return (1);
+}
 
+ Vector3f::~Vector3f() {
+
+ }
+
+float dot(const Vector3f& a, const Vector3f& b) {
+	float res = a.getX() * b.getX() +
+				a.getY() * b.getY() +
+				a.getZ() * b.getZ();
+
+	assert(!std::isinf(res) && !std::isnan(res) && "Error: dot product must be finite");
+
+	return (res);
+}
+
+Vector3f cross(const Vector3f& a, const Vector3f& b) {
 	float	x;
 	float	y;
 	float	z;
 
-	x = vectorA.getY() * vectorB.getZ() - vectorA.getZ() * vectorB.getY();
-	y = vectorA.getZ() * vectorB.getX() - vectorA.getX() * vectorB.getZ();
-	z = vectorA.getX() * vectorB.getY() - vectorA.getY() * vectorB.getX();
+	x = a.getY() * b.getZ() - a.getZ() * b.getY();
+	y = a.getZ() * b.getX() - a.getX() * b.getZ();
+	z = a.getX() * b.getY() - a.getY() * b.getX();
 
 	assert(!std::isinf(x) && !std::isnan(x)
-			&& !std::isinf(y) && !std::isnan(y)
-			&& !std::isinf(z) && !std::isnan(z)
-			&& "Error: Vector3f cross product: result components must be finite");
+		&& !std::isinf(y) && !std::isnan(y)
+		&& !std::isinf(z) && !std::isnan(z)
+		&& "Error: cross product components must be finite");
 
 	return (Vector3f(x, y, z));
 }
 
-Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB) {
-
-	return (Vector3f(vectorA.getX() * vectorB.getX(),
-					vectorA.getY() * vectorB.getY(),
-					vectorA.getZ() * vectorB.getZ()));
-
-}
-
-Vector3f::~Vector3f() {
-
+Vector3f componentMultiply(const Vector3f& a, const Vector3f& b) {
+	return (Vector3f(a.getX() * b.getX(),
+					a.getY() * b.getY(),
+					a.getZ() * b.getZ()));
 }

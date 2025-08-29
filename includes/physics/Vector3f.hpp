@@ -39,12 +39,12 @@ class Vector3f {
 		inline bool		operator!=(const Vector3f& v) const { return (!((*this) == v)); }
 
 		// Seters for each individual components.
-		void			setX(const float x);
-		void			setY(const float y);
-		void			setZ(const float z);
+		void			setX(float x);
+		void			setY(float y);
+		void			setZ(float z);
 
 		// Sets all the three components.
-		void			setVariables(const float x, const float y, const float z);
+		void			setVariables(float x, float y, float z);
 
 		// Getters for each individual components.
 		inline float	getX() const { return (x_); }

@@ -58,22 +58,22 @@ bool	Vector3f::operator==(const Vector3f& v)const {
 			std::fabs(z_ - v.z_) < epsilon);
 }
 
-void	Vector3f::setX(const float x) {
+void	Vector3f::setX(float x) {
 	assert(!std::isinf(x) && !std::isnan(x) && "Error: x value must be finite");
 	x_ = x;
 }
 
-void	Vector3f::setY(const float y) {
+void	Vector3f::setY(float y) {
 	assert(!std::isinf(y) && !std::isnan(y) && "Error: y value must be finite");
 	y_ = y;
 }
 
-void	Vector3f::setZ(const float z) {
+void	Vector3f::setZ(float z) {
 	assert(!std::isinf(z) && !std::isnan(z) && "Error: z value must be finite");
 	z_ = z;
 }
 
-void	Vector3f::setVariables(const float x, const float y, const float z) {
+void	Vector3f::setVariables(float x, float y, float z) {
 
 	assert(!std::isinf(x) && !std::isnan(x)
 		&& !std::isinf(y) && !std::isnan(y)

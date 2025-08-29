@@ -1,69 +1,79 @@
 #ifndef VECTOR3F_HPP
 #define VECTOR3F_HPP
 
-// Represents a 3D vector with single-precision floating-point components.
+// 3D vector object with single-precision floating-point components
 class Vector3f {
+
 	private:
-		float	x;
-		float	y;
-		float	z;
+		float	x_;
+		float	y_;
+		float	z_;
+
 
 	public:
-		// Constructs a vector with given x, y, z values (defaults to zero).
-		Vector3f(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f);
+		// Construct a vector with given (x,y,z) components. Defaults to zero.
+		Vector3f(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
 		// Copy constructor.
-		Vector3f(const Vector3f& vector);
+		Vector3f(const Vector3f& v);
 
 		// Assignment operator.
-		Vector3f&		operator=(const Vector3f& vector);
+		Vector3f&		operator=(const Vector3f& v);
 
-		// Vector addition.
-		Vector3f		operator+(const Vector3f& vector) const;
+		// Addition operator (floating-point secure).
+		Vector3f		operator+(const Vector3f& v) const;
 
-		// Vector subtraction.
-		Vector3f		operator-(const Vector3f& vector) const;
+		// Subtraction operator (floating-point secure).
+		Vector3f		operator-(const Vector3f& v) const;
 
-		// Scalar multiplication.
+		// Moltiplication operator (scalar).
 		Vector3f		operator*(float scalar) const;
 
-		bool			operator==(const Vector3f& vector) const;
+		// Division operator (scalar).
+		Vector3f		operator/(float scalar) const;
 
-		inline bool		operator!=(const Vector3f& vector) const { return (!((*this) == vector));}
+		// Comparison operator (floating-point secure).
+		bool			operator==(const Vector3f& v) const;
 
-		// Sets all three components.
-		void			setVariables(const float x, const float y, const float z);
+		// Comparison operator (floating-point secure).
+		inline bool		operator!=(const Vector3f& v) const { return (!((*this) == v)); }
 
-		// Setters for each individual component.
+		// Seters for each individual components.
 		void			setX(const float x);
 		void			setY(const float y);
 		void			setZ(const float z);
 
-		// Getters for each individual component.
-		inline float	getX(void) const { return (x); }
-		inline float	getY(void) const { return (y); }
-		inline float	getZ(void) const { return (z); }
+		// Sets all the three components.
+		void			setVariables(const float x, const float y, const float z);
 
-		// Validates that all components are finite and not NaN.
-		void			assertVectorCheck();
-
-		// Returns 1 if the variables are valid, 0 otherwise.
-		bool			checkNumerics() const;
+		// Getters for each individual components.
+		inline float	getX() const { return (x_); }
+		inline float	getY() const { return (y_); }
+		inline float	getZ() const { return (z_); }
 
 		// Returns the magnitude (length) of the vector.
 		float			magnitude() const;
 
-		// Destructor.
+		// Validates that all components are finite and non NaN with assert.
+		void			assertCheck();
+
+		/*
+			Validates that alla components are finite and non NaN.
+			Returns 1 if the variables are valid, 0 otherwise.
+		*/
+		bool			checkNumerics() const;
+
+		// Default destructor.
 		~Vector3f();
 };
 
 // Computes the dot product of two vectors.
-float		dot(const Vector3f& vectorA, const Vector3f& vectorB);
+float		dot(const Vector3f& a, const Vector3f& b);
 
 // Computes the cross product of two vectors.
-Vector3f	cross(const Vector3f& vectorA, const Vector3f& vectorB);
+Vector3f	cross(const Vector3f& a, const Vector3f& b);
 
 // Performs element-wise multiplication of two vectors.
-Vector3f	componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB);
+Vector3f	componentMultiply(const Vector3f& a, const Vector3f& b);
 
 #endif

@@ -42,6 +42,7 @@ PID&	PID::operator=(const PID& pid) {
 		antiWindupTau_ = pid.antiWindupTau_;
 		previousError_ = pid.previousError_;
 		derivativeAlpha_ = pid.derivativeAlpha_;
+		filteredDerivative_ = 0.0f;
 	}
 	return (*this);
 }

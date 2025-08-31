@@ -41,7 +41,7 @@ void	ActuatorDriver::setDelay(float delay) {
 
 void	ActuatorDriver::sendCommand(const Vector3f& torque) {
 
-	const_cast<Vector3f&>(torque).assertVectorCheck();
+	const_cast<Vector3f&>(torque).assertCheck();
 	commandBuffer.push(TimedCommand(torque, currentTime));
 
 }

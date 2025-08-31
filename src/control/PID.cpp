@@ -98,61 +98,77 @@ void PID::setAntiWindupTau(float tau) {
 }
 
 float PID::compute(const float setpoint, const float measure, const float dt) {
-	float	ek;
-	float	rawDerivative;
-	float	res;
-
 	assert(dt > 0.0f && "Error: dt must be positive");
 
-	// Discrete PID implementation (Backward Euler)
+	// Discrete PID implementation (Implicit Backward Euler)
 	// Error at the time t (e(t) = r(t) - y(t))
-	ek = setpoint - measure;
-	assert(!std::isinf(ek) && !std::isnan(ek)
-		&& "Error: the error value at the k-iteration must be finite");
+	const float error = setpoint - measure;
+	assert(!std::isinf(error) && !std::isnan(error) && "Error: invalid error");
 
-	/* Riemann sum in discrete time */
 	// Derivative (finite difference) with optional exponential smoothing
-	rawDerivative = (ek - previousError_) / dt;
-
 	// Exponential moving average (EMA) filter to reduce the derivative noise
-	// d_filt = α * d_prev + (1 - α) * d_new
+	// filteredDerivative = alpha * filteredDerivative_prev + (1 - alpha) * rawDerivative
+	const float rawDerivative = (error - previousError_) / dt;
 	filteredDerivative_ = derivativeAlpha_ * filteredDerivative_
 						+ (1.0f - derivativeAlpha_) * rawDerivative;
 
-	// Compute unsaturated (ideal) output using current integral state
-	// u[k] = Kp * e[k] + Ki * ∑(e[i] * dt) + Kd * (e[k] - e[k - 1]) / dt
-	float unsatOutput = (kp_ * ek) + (ki_ * integral_) + (kd_ * filteredDerivative_);
+	// Proportional and derivative terms, integral independent
+	const float proportionalTerm = kp_ * error;
+	const float derivativeTerm = kd_ * filteredDerivative_;
 
-	// Compute saturated output
-	float satOutput = std::min(std::max(unsatOutput, PID::DEFAULT_OUTPUT_MIN),
+	float newIntegral = integral_;
+
+	if (ki_ > 0.0f) {
+		// Implicit solution
+		// I[k+1] = ( I[k] + dt*e[k] + (dt/tau)*((uSat - (Kp*e + Kd*d))/Ki) ) / (1 + dt/tau)
+
+		// First estimate without integral (pdTerm = Kp*e + Kd*d)
+		const float pdTerm = proportionalTerm + derivativeTerm;
+
+		// Ensure tau is reasonable to prevent numerical issues
+		const float effectiveTau = std::max(antiWindupTau_, dt * 10.0f);
+
+		// Without saturation, the output would be pdTerm + Ki*Inew
+		// To solve with the implicit approach the saturation expressed in function of
+		// Inew is needed.
+		// Try both the cases: saturated and not saturated
+
+		// Non-saturated case
+		const float integralCandidate = (integral_ + dt * error) / (1.0f + (dt / effectiveTau));
+		const float unSatOutputCandidate = pdTerm + ki_ * integralCandidate;
+
+		float satOutput = std::min(std::max(unSatOutputCandidate, PID::DEFAULT_OUTPUT_MIN),
 							PID::DEFAULT_OUTPUT_MAX);
 
-	// Back-calculation anti-windup:
-	// Continuous form: I_dot = e + (1/Tt) * (satOutput - unsat) / ki  (when ki != 0)
-	// Discretization: I[k+1] = I[k] + dt * (e + (1/Tt) * (satOutput - unsatOutput)/Ki)
-	if (std::fabs(ki_) > 0.0f) {
-		float correction = (satOutput - unsatOutput) / ki_;
-		integral_ += dt * (ek + (1.0f / antiWindupTau_) * correction);
-	} else {
-		integral_ += dt * ek;
+		if (unSatOutputCandidate == satOutput) {
+			// No saturation
+			newIntegral = integralCandidate;
+		} else {
+			// Saturation case: implicit backward + clamping
+			// I[k+1] = ( I[k] + dt*e[k] + (dt/tau)*((uSat - pdTerm)/Ki) ) / (1 + dt/tau)
+			newIntegral = (integral_ + dt * error
+				+ (dt / effectiveTau) * ((satOutput - pdTerm) / ki_))
+				/ (1.0f + (dt / effectiveTau));
+		}
 	}
 
-	// Clamp integral to sensible limits to avoid numerical explosion
-	integral_ = std::min(std::max(integral_, PID::DEFAULT_INTEGRAL_MIN),
-						 PID::DEFAULT_INTEGRAL_MAX);
+	// Clamp
+	newIntegral = std::min(std::max(newIntegral, PID::DEFAULT_INTEGRAL_MIN),
+					PID::DEFAULT_INTEGRAL_MAX);
 
-	// Recompute final controller output using the (possibly) updated integral
-	res = (kp_ * ek) + ki_ * integral_ + (kd_ * filteredDerivative_);
+	integral_ = newIntegral;
+
+	// Final output
+	float output = proportionalTerm + ki_ * integral_ + derivativeTerm;
 
 	// Final saturation
-	res = std::min(std::max(res, PID::DEFAULT_OUTPUT_MIN),
-				PID::DEFAULT_OUTPUT_MAX);
+	output = std::min(std::max(output, PID::DEFAULT_OUTPUT_MIN),
+					PID::DEFAULT_OUTPUT_MAX);
 
-	previousError_ = ek;
-	assert(!std::isinf(res) && !std::isnan(res)
-		&& "Error: invalid PID output");
-		
-	return (res);
+	previousError_ = error;
+	assert(!std::isinf(output) && !std::isnan(output) && "Error: invalid PID output");
+
+	return (output);
 }
 
 void PID::reset() {

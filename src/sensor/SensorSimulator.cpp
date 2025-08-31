@@ -36,16 +36,16 @@ SensorSimulator&	SensorSimulator::operator=(const SensorSimulator& sensorSimulat
 void	SensorSimulator::update(float dt) {
 
 	assert(dt > 0.0f && "Error: SensorSimulator::update: dt must be positive");
-	driftOmega.assertVectorCheck();
-	driftAngles.assertVectorCheck();
-	driftRate.assertVectorCheck();
+	driftOmega.assertCheck();
+	driftAngles.assertCheck();
+	driftRate.assertCheck();
 
 	driftOmega = driftOmega + driftRate * dt;
 	driftAngles = driftAngles + driftRate * dt;
 
-	driftOmega.assertVectorCheck();
-	driftAngles.assertVectorCheck();
-	driftRate.assertVectorCheck();
+	driftOmega.assertCheck();
+	driftAngles.assertCheck();
+	driftRate.assertCheck();
 
 }
 
@@ -58,17 +58,17 @@ Vector3f	SensorSimulator::readAngularVelocity(void) const {
 	Vector3f	realOmega;
 
 	realOmega = source->getOmega();
-	realOmega.assertVectorCheck();
+	realOmega.assertCheck();
 
 	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
 	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
 	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
 	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
 
-	noise.assertVectorCheck();
+	noise.assertCheck();
 
 	result = realOmega + driftOmega + noise;
-	result.assertVectorCheck();
+	result.assertCheck();
 
 	return (result);
 }
@@ -85,17 +85,17 @@ Vector3f	SensorSimulator::readOrientation() const {
 		source->getRoll()
 	);
 
-	realAngles.assertVectorCheck();
+	realAngles.assertCheck();
 
 	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
 	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
 	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
 	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
 
-	noise.assertVectorCheck();
+	noise.assertCheck();
 
 	result = realAngles + driftAngles + noise;
-	result.assertVectorCheck();
+	result.assertCheck();
 
 	return (result);
 }
@@ -118,9 +118,9 @@ void	SensorSimulator::reset() {
 
 	noiseGenerator.reset();
 
-	driftOmega.assertVectorCheck();
-	driftAngles.assertVectorCheck();
-	driftRate.assertVectorCheck();
+	driftOmega.assertCheck();
+	driftAngles.assertCheck();
+	driftRate.assertCheck();
 
 }
 

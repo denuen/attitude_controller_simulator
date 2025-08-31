@@ -149,35 +149,33 @@ The `Vector3f` module implements a three-dimensional vector class using single-p
 
 &nbsp;
 
-#### Validation Methods
+### Validation Methods
 
 - ```cpp
-  void assertVectorCheck()
+  void assertCheck()
   ```
 
-  Validates ***vector integrity using assertion-based checking***. Terminates program execution if invalid values detected.
+  Validates vector integrity using assertion-based checks. In debug builds this will terminate the program when an invalid value is detected.
 
   **Validation Criteria:**
 
   - No NaN (Not-a-Number) values in any component
   - No infinite values in any component
-  - All components are representable floating-point numbers
 
-  **Usage:** Debug-mode validation for catching numerical errors early in development
+  **Usage:** Debug-mode validation for catching numerical errors early in development. This method maps to the `Vector3f::assertCheck()` implementation in the codebase.
 
 - ```cpp
   bool checkNumerics() const
   ```
 
-  ***Non-destructive numerical validation*** returning boolean result (production build)
+  Non-destructive numerical validation returning a boolean result for production use.
 
   **Returns:**
 
   - `true` if all components are finite and valid
-  - `false` if any component is NaN, infinite, or otherwise invalid
+  - `false` if any component is NaN or infinite, or otherwise invalid
 
-  **Production Use:** Suitable for runtime validation without program termination (the errors must be handled using the error handler)
-
+  **Production Use:** Suitable for runtime validation without program termination; callers should handle a `false` return value appropriately.
 &nbsp;
 
 #### Mathematical Operations
@@ -186,61 +184,44 @@ The `Vector3f` module implements a three-dimensional vector class using single-p
   float magnitude() const
   ```
 
-  Computes ***Euclidean norm*** (length) of the vector.
+  Computes the Euclidean norm (length) of the vector. The implementation uses a scaling strategy to avoid overflow/underflow in the square root computation: it finds the largest absolute component, scales the vector by that value, computes the norm on the scaled vector, and rescales the result.
+
 
   **Formula:** `√(x² + y² + z²)`
 
   **Returns:** Non-negative floating-point magnitude value
-  **Physical Meaning:** Scalar length of vector in 3D space
-  **Applications:** Distance calculations, normalization, energy computations
 
+  **Implementation notes:** The method asserts that the returned magnitude is finite and non-negative.
 &nbsp;
+
 
 ### Free Functions
 
-The module provides mathematical operations as free functions to maintain symmetry and support functional programming patterns and to be compliant with the c++98 std.
+The module provides mathematical operations as free functions to maintain symmetry and support functional programming patterns.
 
 - ```cpp
   float dot(const Vector3f& vectorA, const Vector3f& vectorB)
   ```
 
-  Computes ***dot (scalar) product*** of two vectors.
+  Computes the dot (scalar) product of two vectors: `A·B = Ax·Bx + Ay·By + Az·Bz`.
 
-  **Formula:** `A·B = Ax·Bx + Ay·By + Az·Bz`
-
-  **Returns:** Scalar result representing projection relationship
-  **Physical Meaning:**
-
-  - `A·B = |A||B|cos(θ)` where θ is angle between vectors
-  - Zero result indicates orthogonal vectors
-  - Positive result indicates acute angle
-  - Negative result indicates obtuse angle
+  **Returns:** Scalar result representing the projection relationship. The implementation asserts that the computed result is finite.
 
 - ```cpp
   Vector3f cross(const Vector3f& vectorA, const Vector3f& vectorB)
   ```
 
-  Computes ***cross (vector) product*** following right-hand rule.
+  Computes the cross (vector) product following the right-hand rule: `A × B = (Ay·Bz - Az·By, Az·Bx - Ax·Bz, Ax·By - Ay·Bx)`.
 
-  **Formula:** `A × B = (Ay·Bz - Az·By, Az·Bx - Ax·Bz, Ax·By - Ay·Bx)`
-
-  **Returns:** Vector perpendicular to both input vectors
-  **Physical Meaning:**
-
-  - Magnitude equals area of parallelogram formed by input vectors
-  - Direction follows right-hand rule
-  - Essential for angular momentum, torque calculations
+  **Returns:** Vector perpendicular to both input vectors.
 
 - ```cpp
   Vector3f componentMultiply(const Vector3f& vectorA, const Vector3f& vectorB)
   ```
 
-  Performs ***element-wise (Hadamard) multiplication*** of vector components.
+  Performs element-wise (Hadamard) multiplication of vector components: `(Ax·Bx, Ay·By, Az·Bz)`.
 
-  **Formula:** `(Ax·Bx, Ay·By, Az·Bz)`
-
-  **Returns:** Vector with component-wise products
-  **Applications:** Scaling operations, coordinate transformations, element-wise operations
+  **Returns:** Vector with component-wise products.
 
 &nbsp;
 
@@ -266,7 +247,7 @@ if (!newPosition.checkNumerics()) {
 }
 
 // Assert validation
-//newPosition.assertVectorCheck();
+//newPosition.assertCheck();
 
 std::cout << "New position: ("
           << newPosition.getX() << ", "

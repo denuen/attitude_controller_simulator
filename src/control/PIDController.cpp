@@ -21,7 +21,6 @@ pidRoll(pidController.pidRoll) {
 }
 
 PIDController&	PIDController::operator=(const PIDController& pidController) {
-
 	if (this != &pidController) {
 		pidPitch = pidController.pidPitch;
 		pidYaw = pidController.pidYaw;
@@ -31,30 +30,29 @@ PIDController&	PIDController::operator=(const PIDController& pidController) {
 }
 
 void	PIDController::setGains(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd) {
-
 	pidPitch.setGains(kp.getX(), ki.getX(), kd.getX());
 	pidYaw.setGains(kp.getY(), ki.getY(), kd.getY());
 	pidRoll.setGains(kp.getZ(), ki.getZ(), kd.getZ());
-
 }
 
 void	PIDController::setSmoothing(const float alpha) {
-
 	pidPitch.setDerivativeSmoothing(alpha);
 	pidYaw.setDerivativeSmoothing(alpha);
 	pidRoll.setDerivativeSmoothing(alpha);
+}
 
+void PIDController::setAntiWindupTau(const float tau) {
+	pidPitch.setAntiWindupTau(tau);
+	pidYaw.setAntiWindupTau(tau);
+	pidRoll.setAntiWindupTau(tau);
 }
 
 bool	PIDController::checkNumerics(void) const {
-
 	return (pidPitch.checkNumerics() && pidYaw.checkNumerics()
 			&& pidRoll.checkNumerics());
-
 }
 
 Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measure, float dt) {
-
 	Vector3f	torque;
 
 	assert(dt > 0.0f && "Error: PIDController::compute: dt must be positive");
@@ -67,13 +65,11 @@ Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measur
 }
 
 void	PIDController::reset(void) {
-
 	pidPitch.reset();
 	pidYaw.reset();
 	pidRoll.reset();
-
 }
 
 PIDController::~PIDController() {
-
+	
 }

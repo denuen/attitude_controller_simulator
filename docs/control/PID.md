@@ -22,26 +22,27 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
   PID()
   ```
 
-  Default constructor. Initializes all gains to zero, integral and previous error to zero, filtered derivative to 0.0f, derivative filtering coefficient to 1.0 (no filtering), and anti-windup time constant (`antiWindupTau`) to `0.1f`.
+  Default constructor. Initializes all gains to zero, integral and previous error to zero, filtered derivative to zero, and derivative filtering coefficient to 1.0 (no filtering).
 
 - ```cpp
   PID(float kp, float ki, float kd)
   ```
 
-  Parameterized constructor with gain validation. Asserts that all gain values are finite (not NaN or infinite). Integral and internal state are initialized to zero and `derivativeAlpha` defaults to `1.0f`.
+  Parameterized constructor with gain validation. Asserts that all gain values are finite (not NaN or infinite).
 
 - ```cpp
   PID(const PID& pid)
   ```
 
-  Copy constructor. Copies gains and internal state variables (including integral, previous error, anti-windup tau and derivative alpha).
-  Note: the runtime filtered derivative state is intentionally not copied; `filteredDerivative` is initialized to `0.0f` in the copy constructor to avoid transferring transient filter state between instances.
+  Copy constructor. Copies all gain values and internal state variables including integral, previous error, derivative alpha factor.
+  **Note**: filteredDerivative state is not copied; instead, it is set to 0.0f.
 
 - ```cpp
   PID& operator=(const PID& pid)
   ```
 
-  Assignment operator with self-assignment protection. Copies gains and internal persistent state (integral, previous error, anti-windup tau, derivative alpha). The filtered derivative is is not copied, instead, it is set to 0.0f,
+  Assignment operator with self-assignment protection. Copies all gain and internal state variables.
+  **Note**: filteredDerivative state is not copied; instead, it is set to 0.0f.
 
 - ```cpp
   ~PID()
@@ -57,7 +58,7 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
   bool operator==(const PID& pid) const
   ```
 
-  Equality comparison with epsilon tolerance (`1e-6f`) for floating-point values. Compares gains (`kp`, `ki`, `kd`), integral accumulator, previous error, and derivative smoothing coefficient (`derivativeAlpha`).
+  Equality comparison with epsilon tolerance (1e-6f) for floating-point values. Compares gains (`kp`, `ki`, `kd`), integral accumulator, previous error, and derivative filtering coefficient (`derivativeAlpha`).
 
 - ```cpp
   inline bool operator!=(const PID& pid) const
@@ -70,51 +71,57 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
 #### Accessors (Getters)
 
 - ```cpp
-  inline float getKp() const
-  inline float getKi() const
-  inline float getKd() const
+  inline float getKp(void) const
+  inline float getKi(void) const
+  inline float getKd(void) const
   ```
 
   Return the current proportional, integral, and derivative gain coefficients respectively.
 
 - ```cpp
-  inline float getIntegral() const
+  inline float getIntegral(void) const
   ```
 
   Returns the current integral accumulator value.
 
 - ```cpp
-  inline float getPrevErr() const
+  inline float getPrevErr(void) const
   ```
 
   Returns the previous error value used for derivative term calculation.
 
 - ```cpp
-  inline float getDerivativeSmoothing() const
+  inline float getFilteredDerivative(void) const
   ```
 
-  Returns the alpha coefficient for derivative filtering (`derivativeAlpha`) in the range [0.0, 1.0].
+  Returns the current filtered derivative value.
 
 - ```cpp
-  inline float getAntiWindupTau() const
+  inline float getDerivativeSmoothing(void) const
   ```
 
-  Returns the anti-windup time constant (`antiWindupTau`) used by the implicit backward-Euler anti-windup integrator.
+  Returns the alpha coefficient for derivative filtering (0.0 to 1.0 range).
+
+- ```cpp
+  inline float getAntiWindupTau(void) const
+  ```
+
+  Returns the anti-windup time constant (tau) used for back-calculation method.
 
 &nbsp;
 
 #### Mutators (Setters)
 
 - ```cpp
-  void setKp(float kp)
-  void setKi(float ki)
-  void setKd(float kd)
+  void setKp(const float kp)
+  void setKi(const float ki)
+  void setKd(const float kd)
   ```
 
-  Set individual gain coefficients. Each method validates that the input value is finite via assertions.
+  Set individual gain coefficients. Each method validates that the input value is finite.
 
 - ```cpp
-  void setGains(float kp, float ki, float kd)
+  void setGains(const float kp, const float ki, const float kd)
   ```
 
   Sets all three gain coefficients simultaneously with validation.
@@ -123,13 +130,15 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
   void setDerivativeSmoothing(float alpha)
   ```
 
-  Sets the alpha factor for derivative filtering. The implementation asserts the value is finite; `checkNumerics()` additionally enforces `0.0f <= alpha <= 1.0f`.
+  Sets the alpha factor for derivative filtering. Must be in range [0.0, 1.0] where:
+  - `alpha = 1.0`: No filtering (raw derivative)
+  - `alpha = 0.0`: Maximum filtering (heavily smoothed derivative)
 
 - ```cpp
   void setAntiWindupTau(float tau)
   ```
 
-  Sets the anti-windup time constant used by the implicit integrator. The implementation asserts `tau` is finite; `checkNumerics()` enforces `tau > 0.0f`.
+  Sets the anti-windup time constant for back-calculation method. Must be positive (tau > 0). Lower values provide more aggressive anti-windup correction, while higher values provide gentler correction. Typical values range from 0.01 to 1.0 seconds depending on system dynamics.
 
 &nbsp;
 
@@ -139,30 +148,19 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
   float compute(const float setpoint, const float measure, const float dt)
   ```
 
-  Implements a discrete-time PID controller with an implicit backward-Euler anti-windup integrator and optional exponential smoothing on the derivative term.
+  $$
+  u(k) = K_p \cdot e(k) + K_i \cdot \int e(t)\,dt + K_d \cdot \frac{d e}{dt}_{\text{filtered}}
+  $$
 
-  **Continuous form (for reference):**
+  **Note**: the above formula expresses the PID control law in continuous form (continuous time domain, CT). In the software implementation, this relationship is discretized (discrete time domain, TD) for numerical execution, using finite approximations for the integral and the derivative, as well as a low-pass filter on the derivative term to reduce sensitivity to noise.
 
-  u(k) = Kp·e(k) + Ki·\int e(t) dt + Kd·(d e/dt)_{filtered}
-
-  **Implementation Details (code behavior):**
-  - Asserts `dt > 0.0f` and that computed error is finite.
-  - Error: `error = setpoint - measure`.
-  - Derivative (backward finite difference): `rawDerivative = (error - previousError) / dt`.
-  - Derivative filtering (exponential moving average / EMA):
-    `filteredDerivative = derivativeAlpha * filteredDerivative + (1 - derivativeAlpha) * rawDerivative`.
-    - `derivativeAlpha = 1.0f` means no filtering (output follows previous filteredDerivative only if alpha==1; note the implementation uses this convention so alpha values closer to 0 provide more weight to the new raw derivative).
-  - Proportional and derivative terms are computed independently from the integral update.
-  - Integral update uses an implicit/backward-Euler style anti-windup integrator when `ki > 0`:
-    - It computes a candidate integral assuming no saturation, computes the unsaturated output candidate, clamps the output to the hard limits and, if saturation occurs, solves for the integral using the implicit formula with an anti-windup time constant `tau`.
-    - The implementation also enforces an `effectiveTau = max(antiWindupTau, dt * 10.0f)` to avoid very small tau values causing numerical issues.
-  - Integral accumulator is clamped to `DEFAULT_INTEGRAL_MIN` / `DEFAULT_INTEGRAL_MAX` after the implicit update.
-  - Final output is clamped to `DEFAULT_OUTPUT_MIN` / `DEFAULT_OUTPUT_MAX`.
-  - The implementation asserts the final output is finite before returning it and updates `previousError` and `integral` state.
-
-  **Hardcoded numerical limits:**
-  - Integral clamping: `DEFAULT_INTEGRAL_MIN = -100.0f`, `DEFAULT_INTEGRAL_MAX = +100.0f`.
-  - Output clamping: `DEFAULT_OUTPUT_MIN = -1000.0f`, `DEFAULT_OUTPUT_MAX = +1000.0f`.
+  **Implementation Details:**
+  - **Discretization**: Uses Backward Implicit Euler method for improved numerical stability
+  - **Integral term**: Implicit backward integration with anti-windup back-calculation
+  - **Derivative**: Backward finite difference with exponential moving average filtering
+  - **Anti-windup**: Back-calculation method using configurable time constant (tau)
+  - **Integral clamping**: `[-100.0f, +100.0f]` (hardcoded)
+  - **Output clamping**: `[-1000.0f, +1000.0f]` (hardcoded)
 
   **Parameters:**
   - `setpoint`: Desired reference value
@@ -172,21 +170,16 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
   **Returns:** Control output with applied saturation limits
 
 - ```cpp
-  void reset()
+  void reset(void)
   ```
 
-  Resets integral accumulator, previous error, and filtered derivative to zero. Does not affect gains, derivative smoothing or anti-windup tau.
+  Resets integral accumulator, previous error, and filtered derivative to zero. Does not affect gains or filtering coefficient.
 
 - ```cpp
   bool checkNumerics() const
   ```
 
-  Validates numerical integrity of internal state and configuration. Returns `false` if any value is NaN or infinite, or if configuration values are out-of-range.
-
-  **Checks performed:**
-  - All gains and state variables are finite
-  - `antiWindupTau > 0.0f`
-  - `0.0f <= derivativeAlpha <= 1.0f`
+  Validates numerical integrity of all internal state variables. Returns false if any value is NaN or infinite.
 
 &nbsp;
 
@@ -196,6 +189,7 @@ The `PID` module implements a single-axis Proportional-Integral-Derivative (PID)
 
 - PID gain coefficients: `float kp, ki, kd`
 - Integral accumulator with anti-windup: `float integral`
+- Anti-windup time constant: `float antiWindupTau`
 - Previous error for derivative calculation: `float previousError`
 - Low-pass filtered derivative term: `float filteredDerivative`
 - Filter coefficient (0.0 to 1.0): `float derivativeAlpha`
@@ -221,6 +215,9 @@ PID pitchController(2.0f, 0.05f, 0.8f);
 
 // Apply moderate derivative filtering to reduce noise sensitivity
 pitchController.setDerivativeSmoothing(0.2f);
+
+// Configure anti-windup time constant for responsive correction
+pitchController.setAntiWindupTau(0.1f);
 
 float dt = 0.01f;   // Control loop timestep (10 ms)
 float setpoint = 0.1f;  // Desired pitch angle (rad)

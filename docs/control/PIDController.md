@@ -78,6 +78,12 @@ Designed for decoupled three-axis attitude control assuming small angle approxim
   Sets derivative filtering coefficient uniformly across all three axes.
 
 - ```cpp
+  void setAntiWindupTau(const float tau)
+  ```
+
+  Sets the anti-windup time constant uniformly across all three axes. Must be positive (tau > 0). Controls the aggressiveness of anti-windup correction for all PID controllers simultaneously.
+
+- ```cpp
   bool checkNumerics(void) const
   ```
 
@@ -152,6 +158,7 @@ Vector3f kd(0.2f, 0.1f, 0.25f);  // Derivative gains
 
 PIDController attitudeController(kp, ki, kd);
 attitudeController.setSmoothing(0.8f);  // Light derivative filtering
+attitudeController.setAntiWindupTau(0.1f);  // Configure anti-windup time constant
 
 float dt = 0.01f;  // 10ms control loop
 

@@ -116,6 +116,8 @@ float PID::compute(const float setpoint, const float measure, const float dt) {
 	// Proportional and derivative terms, integral independent
 	const float proportionalTerm = kp_ * error;
 	const float derivativeTerm = kd_ * filteredDerivative_;
+	// u(t) = Kp * e(t) + /integral{e(tau) dtau} * Ki + Kd * d/dt e(t)
+	// uk = Kp * ek + Ki * Ek + Kd * (ek - ek-1)/dt
 
 	float newIntegral = integral_;
 
@@ -141,7 +143,8 @@ float PID::compute(const float setpoint, const float measure, const float dt) {
 		float satOutput = std::min(std::max(unSatOutputCandidate, PID::DEFAULT_OUTPUT_MIN),
 							PID::DEFAULT_OUTPUT_MAX);
 
-		if (unSatOutputCandidate == satOutput) {
+		const float epsilon = 1e-6f;
+		if (std::abs(unSatOutputCandidate - satOutput) < epsilon) {
 			// No saturation
 			newIntegral = integralCandidate;
 		} else {

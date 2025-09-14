@@ -85,11 +85,11 @@ void test_pid_output_clamping() {
 
 // PIDController Tests
 void test_pidcontroller_compute() {
-    Vector3f kp(1.0f, 2.0f, 3.0f);
-    Vector3f ki(0.0f, 0.0f, 0.0f);
-    Vector3f kd(0.0f, 0.0f, 0.0f);
+	Vector3f	pitchG(1.0f, 0.0f, 0.0f);
+	Vector3f	yawG(2.0f, 0.0f, 0.0f);
+	Vector3f	rollG(3.0f, 0.0f, 0.0f);
 
-    PIDController controller(kp, ki, kd);
+    PIDController controller(pitchG, yawG, rollG);
     Vector3f setpoint(1.0f, 2.0f, 3.0f);
     Vector3f measure(0.0f, 0.0f, 0.0f);
 

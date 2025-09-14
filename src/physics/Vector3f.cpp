@@ -38,18 +38,43 @@ Vector3f	Vector3f::operator+(const Vector3f& v) const {
 	return (Vector3f(x_ + v.x_, y_ + v.y_, z_ + v.z_));
 }
 
+Vector3f&	Vector3f::operator+=(const Vector3f& v) {
+	*this = *this + v;
+	assertCheck();
+	return (*this);
+}
+
 Vector3f	Vector3f::operator-(const Vector3f& v) const {
 	return (Vector3f(x_ - v.x_, y_ - v.y_, z_ - v.z_));
+}
+
+Vector3f&	Vector3f::operator-=(const Vector3f& v) {
+	*this = *this - v;
+	assertCheck();
+	return (*this);
 }
 
 Vector3f	Vector3f::operator*(float scalar) const {
 	return (Vector3f(x_ * scalar, y_ * scalar, z_ * scalar));
 }
 
+Vector3f&	Vector3f::operator*=(float scalar) {
+	*this = *this * scalar;
+	assertCheck();
+	return (*this);
+}
+
 Vector3f	Vector3f::operator/(float scalar) const {
 	static const float EPSILON = 1e-6f;
 	assert(std::fabs(scalar) > EPSILON && "Error: division by zero or near-zero scalar");
-	return (Vector3f(x_ / scalar, y_ / scalar, z_ / scalar));}
+	return (Vector3f(x_ / scalar, y_ / scalar, z_ / scalar));
+}
+
+Vector3f&	Vector3f::operator/=(float scalar) {
+	*this = *this / scalar;
+	assertCheck();
+	return (*this);
+}
 
 bool	Vector3f::operator==(const Vector3f& v)const {
 	static const float epsilon = 1e-6f;
@@ -59,22 +84,25 @@ bool	Vector3f::operator==(const Vector3f& v)const {
 			std::fabs(z_ - v.z_) < epsilon);
 }
 
-void	Vector3f::setX(float x) {
-	assert(!std::isinf(x) && !std::isnan(x) && "Error: x value must be finite");
+void	Vector3f::setX(const float x) {
+	assert(!std::isinf(x) && !std::isnan(x)
+		&& "Error: x value must be a valid/finite float value");
 	x_ = x;
 }
 
-void	Vector3f::setY(float y) {
-	assert(!std::isinf(y) && !std::isnan(y) && "Error: y value must be finite");
+void	Vector3f::setY(const float y) {
+	assert(!std::isinf(y) && !std::isnan(y)
+		&& "Error: y value must be a valid/finite float value");
 	y_ = y;
 }
 
-void	Vector3f::setZ(float z) {
-	assert(!std::isinf(z) && !std::isnan(z) && "Error: z value must be finite");
+void	Vector3f::setZ(const float z) {
+	assert(!std::isinf(z) && !std::isnan(z)
+		&& "Error: z value must be a valid/finite float value");
 	z_ = z;
 }
 
-void	Vector3f::setVariables(float x, float y, float z) {
+void	Vector3f::setVariables(const float x, const float y, const float z) {
 
 	assert(!std::isinf(x) && !std::isnan(x)
 		&& !std::isinf(y) && !std::isnan(y)
@@ -106,7 +134,7 @@ float	Vector3f::magnitude() const {
 	float	res = maxVar * std::sqrt(tmp.x_ * tmp.x_ + tmp.y_ * tmp.y_ + tmp.z_ * tmp.z_);
 
 	assert(!std::isnan(res) && !std::isinf(res) && res >= 0.0f
-		&& "Error: magnitude must be finite and non-negative");
+		&& "Error: magnitude must be a valid/finite/non-negative float value");
 
 	return (res);
 }
@@ -135,7 +163,8 @@ float dot(const Vector3f& a, const Vector3f& b) {
 				a.getY() * b.getY() +
 				a.getZ() * b.getZ();
 
-	assert(!std::isinf(res) && !std::isnan(res) && "Error: dot product must be finite");
+	assert(!std::isinf(res) && !std::isnan(res)
+		&& "Error: dot product must be a valid/finite float value");
 
 	return (res);
 }
@@ -157,3 +186,4 @@ Vector3f componentMultiply(const Vector3f& a, const Vector3f& b) {
 					a.getY() * b.getY(),
 					a.getZ() * b.getZ()));
 }
+

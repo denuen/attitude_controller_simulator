@@ -407,16 +407,20 @@ TEST(ActuatorDriverTest, BasicConstruction) {
 }
 
 TEST(ActuatorDriverTest, CommandBuffering) {
-	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
+	Vector3f	init(1.0f, 1.0f, 1.0f);
+	RigidBodySimulator rbs(init);
 	ActuatorDriver actuator(&rbs, 0.2f);
 	// Send multiple commands
-	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
+	init.setVariables(1.0f, 0.0f, 0.0f);
+	actuator.sendCommand(init);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
 
-	actuator.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
+	init.setVariables(0.0f, 1.0f, 0.0f);
+	actuator.sendCommand(init);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(2));
 
-	actuator.sendCommand(Vector3f(0.0f, 0.0f, 1.0f));
+	init.setVariables(0.0f, 0.0f, 1.0f);
+	actuator.sendCommand(init);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(3));
 }
 

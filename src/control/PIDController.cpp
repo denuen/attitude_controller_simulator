@@ -1,75 +1,112 @@
 #include "../../includes/control/PIDController.hpp"
 #include <cassert>
+#include <iostream>
 
 PIDController::PIDController() :
-pidPitch(), pidYaw(), pidRoll() {
+pitch_(), yaw_(), roll_() {
 
 }
 
-PIDController::PIDController(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd) :
-pidPitch(kp.getX(), ki.getX(), kd.getX()),
-pidYaw(kp.getY(), ki.getY(), kd.getY()),
-pidRoll(kp.getZ(), ki.getZ(), kd.getZ()) {
+PIDController::PIDController(const Vector3f& pitchG, const Vector3f& yawG, const Vector3f& rollG) :
+pitch_(pitchG.getX(), pitchG.getY(), pitchG.getZ()),
+yaw_(yawG.getX(), yawG.getY(), yawG.getZ()),
+roll_(rollG.getX(), rollG.getY(), rollG.getZ()) {
 
 }
 
-PIDController::PIDController(const PIDController& pidController) :
-pidPitch(pidController.pidPitch),
-pidYaw(pidController.pidYaw),
-pidRoll(pidController.pidRoll) {
+PIDController::PIDController(const PID& pitch, const PID& yaw, const PID& roll) :
+pitch_(pitch), yaw_(yaw), roll_(roll) {
 
 }
 
-PIDController&	PIDController::operator=(const PIDController& pidController) {
-	if (this != &pidController) {
-		pidPitch = pidController.pidPitch;
-		pidYaw = pidController.pidYaw;
-		pidRoll = pidController.pidRoll;
+PIDController::PIDController(const PIDController& p) :
+pitch_(p.pitch_), yaw_(p.yaw_), roll_(p.roll_) {
+
+}
+
+PIDController&	PIDController::operator=(const PIDController& p) {
+	if (this != &p) {
+		pitch_ = p.pitch_;
+		yaw_ = p.yaw_;
+		roll_ = p.roll_;
 	}
 	return (*this);
 }
 
-void	PIDController::setGains(const Vector3f& kp, const Vector3f& ki, const Vector3f& kd) {
-	pidPitch.setGains(kp.getX(), ki.getX(), kd.getX());
-	pidYaw.setGains(kp.getY(), ki.getY(), kd.getY());
-	pidRoll.setGains(kp.getZ(), ki.getZ(), kd.getZ());
+void	PIDController::setPitchGains(float kp, float ki, float kd) {
+	assert(!std::isnan(kp) && !std::isinf(kp) 
+		&& !std::isnan(ki) && !std::isinf(ki) 
+		&& !std::isnan(kd) && !std::isinf(kd)
+		&& "Error: gain values must be finite.");
+
+	pitch_.setKp(kp);
+	pitch_.setKi(ki);
+	pitch_.setKd(kd);
 }
 
-void	PIDController::setSmoothing(const float alpha) {
-	pidPitch.setDerivativeSmoothing(alpha);
-	pidYaw.setDerivativeSmoothing(alpha);
-	pidRoll.setDerivativeSmoothing(alpha);
+void	PIDController::setYawGains(float kp, float ki, float kd) {
+	assert(!std::isnan(kp) && !std::isinf(kp) 
+		&& !std::isnan(ki) && !std::isinf(ki) 
+		&& !std::isnan(kd) && !std::isinf(kd)
+		&& "Error: gain values must be finite.");
+
+yaw_.setKp(kp);
+	yaw_.setKi(ki);
+	yaw_.setKd(kd);
 }
 
-void PIDController::setAntiWindupTau(const float tau) {
-	pidPitch.setAntiWindupTau(tau);
-	pidYaw.setAntiWindupTau(tau);
-	pidRoll.setAntiWindupTau(tau);
+void	PIDController::setRollGains(float kp, float ki, float kd) {
+	assert(!std::isnan(kp) && !std::isinf(kp) 
+		&& !std::isnan(ki) && !std::isinf(ki) 
+		&& !std::isnan(kd) && !std::isinf(kd)
+		&& "Error: gain values must be finite.");
+
+	roll_.setKp(kp);
+	roll_.setKi(ki);
+	roll_.setKd(kd);
 }
 
-bool	PIDController::checkNumerics(void) const {
-	return (pidPitch.checkNumerics() && pidYaw.checkNumerics()
-			&& pidRoll.checkNumerics());
+void	PIDController::setAllGains(Vector3f& pitchGains, Vector3f& yawGains, Vector3f& rollGains) {
+	pitch_.setGains(pitchGains.getX(), pitchGains.getY(), pitchGains.getZ());
+	yaw_.setGains(yawGains.getX(), yawGains.getY(), yawGains.getZ());
+	roll_.setGains(rollGains.getX(), rollGains.getY(), rollGains.getZ());
 }
 
-Vector3f	PIDController::compute(const Vector3f& setpoint, const Vector3f& measure, float dt) {
+void	PIDController::setSmoothing(float alpha) {
+	pitch_.setDerivativeSmoothing(alpha);
+	yaw_.setDerivativeSmoothing(alpha);
+	roll_.setDerivativeSmoothing(alpha);
+}
+
+void	PIDController::setAntiWindup(float tau) {
+	pitch_.setAntiWindupTau(tau);
+	yaw_.setAntiWindupTau(tau);
+	roll_.setAntiWindupTau(tau);
+}
+	
+Vector3f	PIDController::compute(Vector3f& setpoint, Vector3f& measure, float dt) {
+	assert(dt > 0.0f && "Error: dt must be positive");
+
 	Vector3f	torque;
 
-	assert(dt > 0.0f && "Error: PIDController::compute: dt must be positive");
-
-	torque.setX(pidPitch.compute(setpoint.getX(), measure.getX(), dt));
-	torque.setY(pidYaw.compute(setpoint.getY(), measure.getY(), dt));
-	torque.setZ(pidRoll.compute(setpoint.getZ(), measure.getZ(), dt));
+	torque.setX(pitch_.compute(setpoint.getX(), measure.getX(), dt));
+	torque.setY(yaw_.compute(setpoint.getY(), measure.getY(), dt));
+	torque.setZ(roll_.compute(setpoint.getZ(), measure.getZ(), dt));
 
 	return (torque);
 }
 
-void	PIDController::reset(void) {
-	pidPitch.reset();
-	pidYaw.reset();
-	pidRoll.reset();
+bool	PIDController::checkNumerics() const {
+	return (pitch_.checkNumerics() && yaw_.checkNumerics() && roll_.checkNumerics());
+}
+
+void	PIDController::reset() {
+	pitch_.reset();
+	yaw_.reset();
+	roll_.reset();
 }
 
 PIDController::~PIDController() {
-	
+
 }
+

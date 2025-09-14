@@ -53,9 +53,11 @@ TEST(PIDTest, DerivativeFiltering) {
 
 // PIDController
 TEST(PIDControllerTest, ComputeTorque) {
-	Vector3f kp(1, 2, 3);
-	PIDController ctrl(kp, Vector3f(), Vector3f());
-	Vector3f torque = ctrl.compute(Vector3f(1,2,3), Vector3f(0,0,0), 0.1f);
+	PIDController	ctrl(Vector3f(1, 0.0f, 0.0f), Vector3f(2, 0.0f, 0.0f), Vector3f(3, 0.0f, 0.0f));
+	Vector3f		tmp1(1, 2, 3);
+	Vector3f		tmp2;
+	
+	Vector3f torque = ctrl.compute(tmp1, tmp2, 0.1f);
 	EXPECT_FLOAT_EQ(torque.getX(), 1.0f);
 	EXPECT_FLOAT_EQ(torque.getY(), 4.0f);
 	EXPECT_FLOAT_EQ(torque.getZ(), 9.0f);

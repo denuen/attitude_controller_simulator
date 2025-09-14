@@ -38,7 +38,7 @@ class Vector3f {
 		// Comparison operator (floating-point secure).
 		inline bool		operator!=(const Vector3f& v) const { return (!((*this) == v)); }
 
-		// Seters for each individual components.
+		// Setters for each individual components.
 		void			setX(float x);
 		void			setY(float y);
 		void			setZ(float z);

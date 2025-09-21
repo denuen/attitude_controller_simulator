@@ -1,36 +1,40 @@
-#ifndef GAUSSIANNOISE_HPP
-#define GAUSSIANNOISE_HPP
+#ifndef GAUSSIAN_NOISE_HPP
+#define GAUSSIAN_NOISE_HPP
 
-// Generates Gaussian-distributed random noise using the Box-Muller transform.
+// Generates Gaussian-distributed random noise using the Box-Muller transform
 class GaussianNoiseGenerator {
 
 	private:
-		bool	hasSpare;	// Flag indicating whether a spare value is cached from the previous generation.
-		float	spare;	// Cached spare value from the Box-Muller transform.
+		float	spare_; // Cached spare value from the Box-Muller transform
+		bool	hasSpare_; // Flag indicating whether a spare value is cached from the previous generation
 
 	public:
-		// Constructs a Gaussian noise generator with no cached values.
+		// Constructs a gng with no cached values
 		GaussianNoiseGenerator();
 
-		// Copy constructor.
-		GaussianNoiseGenerator(const GaussianNoiseGenerator& gng);
+		// Copy constructor
+		GaussianNoiseGenerator(const GaussianNoiseGenerator& g);
 
-		// Copy assignment operator.
-		GaussianNoiseGenerator&	operator=(const GaussianNoiseGenerator& gng);
+		// Copy assignment operator
+		GaussianNoiseGenerator&	operator=(const GaussianNoiseGenerator& g);
 
-		// Generates normally distributed random values with specified mean and standard deviation.
-		float					generate(float mean, float stddev);
+		// Generates normally distributed random values with specified mean and standard deviation
+		float	generate(float mean, float stddev);
 
-		// Initializes the global random number generator with current time.
-		static void				initSeed();
+		// Initializes the global random number generator with the current time
+		static void	initSeed();
 
-		bool					checkNumerics() const;
+		/*
+			Checks the correctness of all the required values of the module.
+			Returns 1 if they are correct, 0 otherwise.
+		*/
+		bool	checkNumerics();
 
-		// Clears the cached spare value.
-		inline void				reset() { hasSpare = false; }
+		// Clears the cached spare value
+		inline void	reset() { hasSpare_ = 0; }
 
-		// Destructor.
+		// Default destructor
 		~GaussianNoiseGenerator();
-};
 
+};
 #endif

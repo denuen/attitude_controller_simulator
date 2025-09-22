@@ -1,12 +1,12 @@
-#include <gtest/gtest.h>
-#include <math.h>
+#include "../includes/control/ActuatorDriver.hpp"
 #include "../includes/control/PID.hpp"
 #include "../includes/control/PIDController.hpp"
-#include "../includes/control/ActuatorDriver.hpp"
-#include "../includes/physics/Vector3f.hpp"
 #include "../includes/physics/RigidBodySimulator.hpp"
-#include "../includes/sensor/SensorSimulator.hpp"
+#include "../includes/physics/Vector3f.hpp"
 #include "../includes/sensor/GaussianNoise.hpp"
+#include "../includes/sensor/SensorSimulator.hpp"
+#include <gtest/gtest.h>
+#include <math.h>
 
 // Vector3f
 TEST(Vector3fTest, BasicOperations) {
@@ -31,7 +31,7 @@ TEST(Vector3fTest, DotCross) {
 
 // PID
 TEST(PIDTest, StepResponse) {
-	PID pid(1.0f, 0.0f, 0.0f);
+	PID	  pid(1.0f, 0.0f, 0.0f);
 	float out = pid.compute(10.0f, 7.0f, 0.1f);
 	EXPECT_FLOAT_EQ(out, 3.0f);
 }
@@ -53,10 +53,11 @@ TEST(PIDTest, DerivativeFiltering) {
 
 // PIDController
 TEST(PIDControllerTest, ComputeTorque) {
-	PIDController	ctrl(Vector3f(1, 0.0f, 0.0f), Vector3f(2, 0.0f, 0.0f), Vector3f(3, 0.0f, 0.0f));
-	Vector3f		tmp1(1, 2, 3);
-	Vector3f		tmp2;
-	
+	PIDController ctrl(Vector3f(1, 0.0f, 0.0f), Vector3f(2, 0.0f, 0.0f),
+					   Vector3f(3, 0.0f, 0.0f));
+	Vector3f	  tmp1(1, 2, 3);
+	Vector3f	  tmp2;
+
 	Vector3f torque = ctrl.compute(tmp1, tmp2, 0.1f);
 	EXPECT_FLOAT_EQ(torque.getX(), 1.0f);
 	EXPECT_FLOAT_EQ(torque.getY(), 4.0f);
@@ -79,13 +80,14 @@ TEST(RBSTest, BasicUpdate) {
 // SensorSimulator Tests
 TEST(SensorSimulatorTest, BasicConstruction) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor(&rbs);
+	SensorSimulator	   sensor(&rbs);
 
 	// Test basic reading without drift or noise
-	Vector3f omega = sensor.readAngularVelocity();
-	Vector3f orientation = sensor.readOrientation();
+	Vector3f omega		 = sensor.getMeasuredOmega();
+	Vector3f orientation = sensor.getMeasuredOrientation();
 
-	// Should read the same values as the source (since drift and noise are zero)
+	// Should read the same values as the source (since drift and noise are
+	// zero)
 	EXPECT_FLOAT_EQ(omega.getX(), rbs.getOmega().getX());
 	EXPECT_FLOAT_EQ(omega.getY(), rbs.getOmega().getY());
 	EXPECT_FLOAT_EQ(omega.getZ(), rbs.getOmega().getZ());
@@ -97,71 +99,74 @@ TEST(SensorSimulatorTest, BasicConstruction) {
 
 TEST(SensorSimulatorTest, DriftAccumulation) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor(&rbs);
+	SensorSimulator	   sensor(&rbs);
 
 	// Set drift rate: 0.1 rad/s per second on each axis
 	Vector3f driftRate(0.1f, 0.2f, 0.3f);
 	sensor.setDriftRate(driftRate);
 
 	// Read initial values
-	Vector3f initialOmega = sensor.readAngularVelocity();
-	Vector3f initialOrientation = sensor.readOrientation();
+	Vector3f initialOmega		= sensor.getMeasuredOmega();
+	Vector3f initialOrientation = sensor.getMeasuredOrientation();
 
 	// Update drift for 1 second
 	sensor.update(1.0f);
 
 	// Read values after drift accumulation
-	Vector3f driftedOmega = sensor.readAngularVelocity();
-	Vector3f driftedOrientation = sensor.readOrientation();
+	Vector3f driftedOmega		= sensor.getMeasuredOmega();
+	Vector3f driftedOrientation = sensor.getMeasuredOrientation();
 
-	// Check that drift has been applied (approximately, since noise is also present)
-	// The difference should be close to the drift rate
+	// Check that drift has been applied (approximately, since noise is also
+	// present) The difference should be close to the drift rate
 	EXPECT_NEAR(driftedOmega.getX() - initialOmega.getX(), 0.1f, 0.01f);
 	EXPECT_NEAR(driftedOmega.getY() - initialOmega.getY(), 0.2f, 0.01f);
 	EXPECT_NEAR(driftedOmega.getZ() - initialOmega.getZ(), 0.3f, 0.01f);
 
-	EXPECT_NEAR(driftedOrientation.getX() - initialOrientation.getX(), 0.1f, 0.01f);
-	EXPECT_NEAR(driftedOrientation.getY() - initialOrientation.getY(), 0.2f, 0.01f);
-	EXPECT_NEAR(driftedOrientation.getZ() - initialOrientation.getZ(), 0.3f, 0.01f);
+	EXPECT_NEAR(driftedOrientation.getX() - initialOrientation.getX(), 0.1f,
+				0.01f);
+	EXPECT_NEAR(driftedOrientation.getY() - initialOrientation.getY(), 0.2f,
+				0.01f);
+	EXPECT_NEAR(driftedOrientation.getZ() - initialOrientation.getZ(), 0.3f,
+				0.01f);
 }
 
 TEST(SensorSimulatorTest, NoiseApplication) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor(&rbs);
+	SensorSimulator	   sensor(&rbs);
 
 	// Set significant noise standard deviation
 	Vector3f noiseStdDev(0.1f, 0.1f, 0.1f);
 	sensor.setNoiseStdDev(noiseStdDev);
 
 	// Take multiple readings and verify they are different (due to noise)
-	Vector3f reading1 = sensor.readAngularVelocity();
-	Vector3f reading2 = sensor.readAngularVelocity();
-	Vector3f reading3 = sensor.readAngularVelocity();
+	Vector3f reading1 = sensor.getMeasuredOmega();
+	Vector3f reading2 = sensor.getMeasuredOmega();
+	Vector3f reading3 = sensor.getMeasuredOmega();
 
 	// With noise, readings should be different
-	bool hasVariation = (reading1.getX() != reading2.getX()) ||
-						(reading1.getY() != reading2.getY()) ||
-						(reading1.getZ() != reading2.getZ()) ||
-						(reading2.getX() != reading3.getX()) ||
-						(reading2.getY() != reading3.getY()) ||
-						(reading2.getZ() != reading3.getZ());
+	bool hasVariation = (reading1.getX() != reading2.getX())
+						|| (reading1.getY() != reading2.getY())
+						|| (reading1.getZ() != reading2.getZ())
+						|| (reading2.getX() != reading3.getX())
+						|| (reading2.getY() != reading3.getY())
+						|| (reading2.getZ() != reading3.getZ());
 
 	EXPECT_TRUE(hasVariation);
 
 	// Test orientation noise as well
-	Vector3f orient1 = sensor.readOrientation();
-	Vector3f orient2 = sensor.readOrientation();
+	Vector3f orient1 = sensor.getMeasuredOrientation();
+	Vector3f orient2 = sensor.getMeasuredOrientation();
 
-	bool hasOrientationVariation = (orient1.getX() != orient2.getX()) ||
-									(orient1.getY() != orient2.getY()) ||
-									(orient1.getZ() != orient2.getZ());
+	bool hasOrientationVariation = (orient1.getX() != orient2.getX())
+								   || (orient1.getY() != orient2.getY())
+								   || (orient1.getZ() != orient2.getZ());
 
 	EXPECT_TRUE(hasOrientationVariation);
 }
 
 TEST(SensorSimulatorTest, ResetFunctionality) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor(&rbs);
+	SensorSimulator	   sensor(&rbs);
 
 	// Set drift rate and noise
 	Vector3f driftRate(0.1f, 0.2f, 0.3f);
@@ -173,15 +178,15 @@ TEST(SensorSimulatorTest, ResetFunctionality) {
 	sensor.update(2.0f);
 
 	// Read values with drift
-	Vector3f driftedOmega = sensor.readAngularVelocity();
-	Vector3f driftedOrientation = sensor.readOrientation();
+	Vector3f driftedOmega		= sensor.getMeasuredOmega();
+	Vector3f driftedOrientation = sensor.getMeasuredOrientation();
 
 	// Reset the sensor
 	sensor.reset();
 
 	// Read values after reset
-	Vector3f resetOmega = sensor.readAngularVelocity();
-	Vector3f resetOrientation = sensor.readOrientation();
+	Vector3f resetOmega		  = sensor.getMeasuredOmega();
+	Vector3f resetOrientation = sensor.getMeasuredOrientation();
 
 	// Values should be much closer to the original source values
 	// (allowing for small noise variations)
@@ -196,7 +201,7 @@ TEST(SensorSimulatorTest, ResetFunctionality) {
 
 TEST(SensorSimulatorTest, CopyConstructorAndAssignment) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor1(&rbs);
+	SensorSimulator	   sensor1(&rbs);
 
 	// Configure sensor1
 	Vector3f driftRate(0.1f, 0.2f, 0.3f);
@@ -209,8 +214,8 @@ TEST(SensorSimulatorTest, CopyConstructorAndAssignment) {
 	SensorSimulator sensor2(sensor1);
 
 	// Both sensors should give similar readings (within noise tolerance)
-	Vector3f omega1 = sensor1.readAngularVelocity();
-	Vector3f omega2 = sensor2.readAngularVelocity();
+	Vector3f omega1 = sensor1.getMeasuredOmega();
+	Vector3f omega2 = sensor2.getMeasuredOmega();
 
 	// The drift should be the same, but noise will be different
 	// Check that they're in a reasonable range
@@ -222,7 +227,7 @@ TEST(SensorSimulatorTest, CopyConstructorAndAssignment) {
 	SensorSimulator sensor3(&rbs);
 	sensor3 = sensor1;
 
-	Vector3f omega3 = sensor3.readAngularVelocity();
+	Vector3f omega3 = sensor3.getMeasuredOmega();
 	EXPECT_NEAR(omega1.getX(), omega3.getX(), 0.3f);
 	EXPECT_NEAR(omega1.getY(), omega3.getY(), 0.3f);
 	EXPECT_NEAR(omega1.getZ(), omega3.getZ(), 0.3f);
@@ -233,7 +238,7 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 	GaussianNoiseGenerator::initSeed();
 
 	RigidBodySimulator rbs(Vector3f(1.0f, 2.0f, 3.0f));
-	SensorSimulator imu(&rbs);
+	SensorSimulator	   imu(&rbs);
 
 	// Set realistic IMU parameters
 	// Typical gyroscope noise: 0.01 rad/s
@@ -251,11 +256,11 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 	rbs.setOmega(Vector3f(0.5f, 0.6f, 0.7f));
 
 	// Simulate IMU readings over 10 seconds
-	float dt = 0.1f;
-	int steps = 100; // 10 seconds
+	float dt	= 0.1f;
+	int	  steps = 100; // 10 seconds
 
-	Vector3f lastOmega = imu.readAngularVelocity();
-	Vector3f lastOrientation = imu.readOrientation();
+	Vector3f lastOmega		 = imu.getMeasuredOmega();
+	Vector3f lastOrientation = imu.getMeasuredOrientation();
 
 	for (int i = 0; i < steps; ++i) {
 		// Update physics
@@ -265,8 +270,8 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 		imu.update(dt);
 
 		// Read sensor values
-		Vector3f currentOmega = imu.readAngularVelocity();
-		Vector3f currentOrientation = imu.readOrientation();
+		Vector3f currentOmega		= imu.getMeasuredOmega();
+		Vector3f currentOrientation = imu.getMeasuredOrientation();
 
 		// Verify readings are reasonable (not NaN or infinite)
 		EXPECT_FALSE(std::isnan(currentOmega.getX()));
@@ -282,13 +287,13 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 		EXPECT_LT(abs(currentOmega.getY()), 10.0f);
 		EXPECT_LT(abs(currentOmega.getZ()), 10.0f);
 
-		lastOmega = currentOmega;
+		lastOmega		= currentOmega;
 		lastOrientation = currentOrientation;
 	}
 
 	// After 10 seconds, drift should be approximately 0.01 rad/s
-	Vector3f finalOmega = imu.readAngularVelocity();
-	Vector3f realOmega = rbs.getOmega();
+	Vector3f finalOmega = imu.getMeasuredOmega();
+	Vector3f realOmega	= rbs.getOmega();
 
 	// The difference should be roughly the accumulated drift plus some noise
 	float driftAccumulated = 0.001f * 10.0f; // 0.01 rad/s
@@ -299,16 +304,16 @@ TEST(SensorSimulatorTest, RealisticIMUSimulation) {
 
 TEST(SensorSimulatorTest, ZeroNoiseConfiguration) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	SensorSimulator sensor(&rbs);
+	SensorSimulator	   sensor(&rbs);
 
 	// Set zero noise standard deviation
 	Vector3f zeroNoise(0.0f, 0.0f, 0.0f);
 	sensor.setNoiseStdDev(zeroNoise);
 
 	// Multiple readings should be identical (no noise)
-	Vector3f reading1 = sensor.readAngularVelocity();
-	Vector3f reading2 = sensor.readAngularVelocity();
-	Vector3f reading3 = sensor.readAngularVelocity();
+	Vector3f reading1 = sensor.getMeasuredOmega();
+	Vector3f reading2 = sensor.getMeasuredOmega();
+	Vector3f reading3 = sensor.getMeasuredOmega();
 
 	EXPECT_FLOAT_EQ(reading1.getX(), reading2.getX());
 	EXPECT_FLOAT_EQ(reading1.getY(), reading2.getY());
@@ -342,10 +347,10 @@ TEST(GaussianNoiseGeneratorTest, MeanAndStdDev) {
 
 	// Generate many samples and check statistical properties
 	const int numSamples = 10000;
-	float mean = 5.0f;
-	float stddev = 2.0f;
+	float	  mean		 = 5.0f;
+	float	  stddev	 = 2.0f;
 
-	float sum = 0.0f;
+	float sum		 = 0.0f;
 	float sumSquares = 0.0f;
 
 	for (int i = 0; i < numSamples; ++i) {
@@ -355,7 +360,8 @@ TEST(GaussianNoiseGeneratorTest, MeanAndStdDev) {
 	}
 
 	float actualMean = sum / numSamples;
-	float actualVariance = (sumSquares / numSamples) - (actualMean * actualMean);
+	float actualVariance =
+		(sumSquares / numSamples) - (actualMean * actualMean);
 	float actualStdDev = sqrt(actualVariance);
 
 	// Check that mean and standard deviation are close to expected values
@@ -367,7 +373,7 @@ TEST(GaussianNoiseGeneratorTest, ZeroStdDev) {
 	GaussianNoiseGenerator generator;
 
 	// When stddev is 0, should always return the mean
-	float mean = 3.14f;
+	float mean	 = 3.14f;
 	float value1 = generator.generate(mean, 0.0f);
 	float value2 = generator.generate(mean, 0.0f);
 
@@ -387,7 +393,8 @@ TEST(GaussianNoiseGeneratorTest, ResetFunctionality) {
 	generator1.reset();
 
 	// After reset, the internal state should be cleared
-	// This should be hard to test directly, but at least no crashes should occur
+	// This should be hard to test directly, but at least no crashes should
+	// occur
 	float value = generator1.generate(0.0f, 1.0f);
 	EXPECT_TRUE(isfinite(value));
 }
@@ -395,7 +402,7 @@ TEST(GaussianNoiseGeneratorTest, ResetFunctionality) {
 // ActuatorDriver Tests
 TEST(ActuatorDriverTest, BasicConstruction) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 	// Test basic properties
 	EXPECT_FLOAT_EQ(actuator.getDelay(), 0.1f);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
@@ -403,13 +410,14 @@ TEST(ActuatorDriverTest, BasicConstruction) {
 	// Test default constructor
 	ActuatorDriver defaultActuator;
 	EXPECT_FLOAT_EQ(defaultActuator.getDelay(), 0.0f);
-	EXPECT_EQ(defaultActuator.getBufferedCommandCount(), static_cast<size_t>(0));
+	EXPECT_EQ(defaultActuator.getBufferedCommandCount(),
+			  static_cast<size_t>(0));
 }
 
 TEST(ActuatorDriverTest, CommandBuffering) {
-	Vector3f	init(1.0f, 1.0f, 1.0f);
+	Vector3f		   init(1.0f, 1.0f, 1.0f);
 	RigidBodySimulator rbs(init);
-	ActuatorDriver actuator(&rbs, 0.2f);
+	ActuatorDriver	   actuator(&rbs, 0.2f);
 	// Send multiple commands
 	init.setVariables(1.0f, 0.0f, 0.0f);
 	actuator.sendCommand(init);
@@ -426,7 +434,7 @@ TEST(ActuatorDriverTest, CommandBuffering) {
 
 TEST(ActuatorDriverTest, DelayedExecution) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 
 	rbs.setPitch(0.0f);
 	rbs.setYaw(0.0f);
@@ -456,7 +464,7 @@ TEST(ActuatorDriverTest, DelayedExecution) {
 
 TEST(ActuatorDriverTest, ZeroDelayExecution) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.0f);
+	ActuatorDriver	   actuator(&rbs, 0.0f);
 
 	rbs.setPitch(0.0f);
 	rbs.setYaw(0.0f);
@@ -480,37 +488,39 @@ TEST(ActuatorDriverTest, ZeroDelayExecution) {
 
 TEST(ActuatorDriverTest, MultipleDelayedCommands) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 
 	// Send commands at different times
 	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
-	actuator.update(0.02f);  // currentTime = 0.02
+	actuator.update(0.02f); // currentTime = 0.02
 
 	actuator.sendCommand(Vector3f(0.0f, 1.0f, 0.0f));
-	actuator.update(0.02f);  // currentTime = 0.04
+	actuator.update(0.02f); // currentTime = 0.04
 
 	actuator.sendCommand(Vector3f(0.0f, 0.0f, 1.0f));
-	actuator.update(0.02f);  // currentTime = 0.06
+	actuator.update(0.02f); // currentTime = 0.06
 
 	// Should have 3 commands buffered
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(3));
 
 	// Update to execute first command (0 + 0.1 = 0.1, currentTime will be 0.1)
-	actuator.update(0.04f);  // currentTime = 0.1
+	actuator.update(0.04f); // currentTime = 0.1
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(2));
 
-	// Update to execute second command (0.02 + 0.1 = 0.12, currentTime will be 0.12)
-	actuator.update(0.02f);  // currentTime = 0.12
+	// Update to execute second command (0.02 + 0.1 = 0.12, currentTime will be
+	// 0.12)
+	actuator.update(0.02f); // currentTime = 0.12
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1));
 
-	// Update to execute third command (0.04 + 0.1 = 0.14, currentTime will be 0.14)
-	actuator.update(0.02f);  // currentTime = 0.14
+	// Update to execute third command (0.04 + 0.1 = 0.14, currentTime will be
+	// 0.14)
+	actuator.update(0.02f); // currentTime = 0.14
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
 }
 
 TEST(ActuatorDriverTest, DelayModification) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 
 	// Test initial delay
 	EXPECT_FLOAT_EQ(actuator.getDelay(), 0.1f);
@@ -522,15 +532,17 @@ TEST(ActuatorDriverTest, DelayModification) {
 	// Test that new delay is applied
 	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
 	actuator.update(0.1f);
-	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(1)); // Command should still be buffered
+	EXPECT_EQ(actuator.getBufferedCommandCount(),
+			  static_cast<size_t>(1)); // Command should still be buffered
 
 	actuator.update(0.1f);
-	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0)); // Now command should execute
+	EXPECT_EQ(actuator.getBufferedCommandCount(),
+			  static_cast<size_t>(0)); // Now command should execute
 }
 
 TEST(ActuatorDriverTest, ResetFunctionality) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 
 	// Send multiple commands and advance time
 	actuator.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
@@ -552,7 +564,7 @@ TEST(ActuatorDriverTest, ResetFunctionality) {
 
 TEST(ActuatorDriverTest, CopyConstructorAndAssignment) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator1(&rbs, 0.1f);
+	ActuatorDriver	   actuator1(&rbs, 0.1f);
 
 	// Configure actuator1
 	actuator1.sendCommand(Vector3f(1.0f, 0.0f, 0.0f));
@@ -573,7 +585,7 @@ TEST(ActuatorDriverTest, CopyConstructorAndAssignment) {
 
 TEST(ActuatorDriverTest, RealisticControlLoop) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 2.0f, 3.0f));
-	ActuatorDriver actuator(&rbs, 0.05f); // 50ms delay
+	ActuatorDriver	   actuator(&rbs, 0.05f); // 50ms delay
 
 	rbs.setPitch(0.0f);
 	rbs.setYaw(0.0f);
@@ -581,14 +593,14 @@ TEST(ActuatorDriverTest, RealisticControlLoop) {
 	rbs.setOmega(Vector3f(0.0f, 0.0f, 0.0f));
 
 	// Simulate a control loop with 10ms timestep for 1 second
-	float dt = 0.01f;
-	int steps = 100;
+	float dt	= 0.01f;
+	int	  steps = 100;
 
 	for (int i = 0; i < steps; ++i) {
 		// Generate control commands (simple proportional control)
 		Vector3f targetAttitude(0.1f, 0.2f, 0.3f);
 		Vector3f currentAttitude(rbs.getPitch(), rbs.getYaw(), rbs.getRoll());
-		Vector3f error = targetAttitude - currentAttitude;
+		Vector3f error		   = targetAttitude - currentAttitude;
 		Vector3f controlTorque = error * 0.5f; // Simple P controller
 
 		// Send command through actuator
@@ -624,7 +636,7 @@ TEST(ActuatorDriverTest, RealisticControlLoop) {
 
 TEST(ActuatorDriverTest, HighFrequencyCommands) {
 	RigidBodySimulator rbs(Vector3f(1.0f, 1.0f, 1.0f));
-	ActuatorDriver actuator(&rbs, 0.1f);
+	ActuatorDriver	   actuator(&rbs, 0.1f);
 
 	// Send many commands rapidly
 	for (int i = 0; i < 100; ++i) {

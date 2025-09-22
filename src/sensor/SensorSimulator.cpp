@@ -1,127 +1,103 @@
 #include "../../includes/sensor/SensorSimulator.hpp"
-#include <iostream>
 #include <cassert>
-#include <cstddef>
-
+#include <stdio.h>
+#include <cmath>
 
 SensorSimulator::SensorSimulator(RigidBodySimulator* source) :
-driftOmega(0.0f, 0.0f, 0.0f), driftAngles(0.0f, 0.0f, 0.0f),
-driftRate(0.0f, 0.0f, 0.0f), noiseStdDev(0.0f, 0.0f, 0.0f), source(source), noiseGenerator() {
+driftOmega_(0.0f), driftAngles_(0.0f), driftRate_(0.0f),
+noiseStdDev_(0.0f), source_(source), noiseGenerator_() {
+	assert(source != NULL
+		&& "Error: source must be a non-null pointer");
+}
 
-	assert(source != NULL && "Error: SensorSimulator constructor: source must be a non-null pointer");
+SensorSimulator::SensorSimulator(const SensorSimulator& s) :
+driftOmega_(s.driftOmega_), driftAngles_(s.driftAngles_),
+driftRate_(s.driftRate_), noiseStdDev_(s.noiseStdDev_),
+source_(s.source_), noiseGenerator_(s.noiseGenerator_){
 
 }
 
-SensorSimulator::SensorSimulator(const SensorSimulator& sensorSimulator) :
-driftOmega(sensorSimulator.driftOmega), driftAngles(sensorSimulator.driftAngles),
-driftRate(sensorSimulator.driftRate), noiseStdDev(sensorSimulator.noiseStdDev),
-source(sensorSimulator.source), noiseGenerator(sensorSimulator.noiseGenerator) {
-
-}
-
-SensorSimulator&	SensorSimulator::operator=(const SensorSimulator& sensorSimulator) {
-
-	if (this != &sensorSimulator) {
-		driftOmega = sensorSimulator.driftOmega;
-		driftAngles = sensorSimulator.driftAngles;
-		driftRate = sensorSimulator.driftRate;
-		noiseStdDev = sensorSimulator.noiseStdDev;
-		source = sensorSimulator.source;
-		noiseGenerator = sensorSimulator.noiseGenerator;
+SensorSimulator&	SensorSimulator::operator=(const SensorSimulator& s) {
+	if (this != &s) {
+		driftOmega_ = s.driftOmega_;
+		driftAngles_ = s.driftAngles_;
+		driftRate_ = s.driftRate_;
+		noiseStdDev_ = s.noiseStdDev_;
+		source_ = s.source_;
+		noiseGenerator_ = s.noiseGenerator_;
 	}
-
 	return (*this);
 }
 
 void	SensorSimulator::update(float dt) {
+	assert(!std::isnan(dt) && !std::isinf(dt)
+		&& dt > 0.0f && "Error: dt must be finite and non-negative");
 
-	assert(dt > 0.0f && "Error: SensorSimulator::update: dt must be positive");
-	driftOmega.assertCheck();
-	driftAngles.assertCheck();
-	driftRate.assertCheck();
+	driftOmega_.assertCheck();
+	driftAngles_.assertCheck();
+	driftRate_.assertCheck();
 
-	driftOmega = driftOmega + driftRate * dt;
-	driftAngles = driftAngles + driftRate * dt;
+	driftOmega_	= driftOmega_ + driftRate_ * dt;
+	driftAngles_ = driftAngles_ + driftRate_ * dt;
 
-	driftOmega.assertCheck();
-	driftAngles.assertCheck();
-	driftRate.assertCheck();
-
+	driftOmega_.assertCheck();
+	driftAngles_.assertCheck();
+	driftRate_.assertCheck();
 }
 
-Vector3f	SensorSimulator::readAngularVelocity(void) const {
-
-	assert(source != NULL && "Error: SensorSimulator::readAngularVelocity: source pointer is null");
+Vector3f	SensorSimulator::getMeasuredOmega() const {
+	assert(source_ != NULL
+		&& "Error: source must be a non-null pointer");
 
 	Vector3f	noise;
-	Vector3f	result;
-	Vector3f	realOmega;
+	Vector3f	res;
 
-	realOmega = source->getOmega();
-	realOmega.assertCheck();
-
-	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
-	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
-	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
-	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
+	noise.setX(noiseGenerator_.generate(0.0f, noiseStdDev_.getX()));
+	noise.setY(noiseGenerator_.generate(0.0f, noiseStdDev_.getY()));
+	noise.setZ(noiseGenerator_.generate(0.0f, noiseStdDev_.getZ()));
 
 	noise.assertCheck();
 
-	result = realOmega + driftOmega + noise;
-	result.assertCheck();
+	res = source_->getOmega() + driftOmega_ + noise;
+	res.assertCheck();
 
-	return (result);
+	return (res);
 }
 
-Vector3f	SensorSimulator::readOrientation() const {
-
-	assert(source != NULL && "Error: SensorSimulator::readOrientation: source pointer is null");
+Vector3f	SensorSimulator::getMeasuredOrientation() const {
+	assert(source_ != NULL
+		&& "Error: source must be a non-null pointer");
 
 	Vector3f	noise;
-	Vector3f	result;
-	Vector3f	realAngles(
-		source->getPitch(),
-		source->getYaw(),
-		source->getRoll()
-	);
+	Vector3f	angles(source_->getPitch(), source_->getYaw(), source_->getRoll());
+	Vector3f	res;
 
-	realAngles.assertCheck();
-
-	// Generate Gaussian noise for each axis with mean=0 and stddev from noiseStdDev
-	noise.setX(noiseGenerator.generate(0.0f, noiseStdDev.getX()));
-	noise.setY(noiseGenerator.generate(0.0f, noiseStdDev.getY()));
-	noise.setZ(noiseGenerator.generate(0.0f, noiseStdDev.getZ()));
+	noise.setX(noiseGenerator_.generate(0.0f, noiseStdDev_.getX()));
+	noise.setY(noiseGenerator_.generate(0.0f, noiseStdDev_.getY()));
+	noise.setZ(noiseGenerator_.generate(0.0f, noiseStdDev_.getZ()));
 
 	noise.assertCheck();
 
-	result = realAngles + driftAngles + noise;
-	result.assertCheck();
+	res = angles + driftAngles_ + noise;
+	res.assertCheck();
 
-	return (result);
+	return (res);
 }
 
-bool	SensorSimulator::checkNumerics(void) const{
-
-	if (!driftOmega.checkNumerics() || !driftAngles.checkNumerics()
-		|| !driftRate.checkNumerics() || !noiseStdDev.checkNumerics()
-		|| !source || !source->checkNumerics() || !noiseGenerator.checkNumerics()) {
-			return (0);
+bool	SensorSimulator::checkNumerics() const {
+	if (!driftOmega_.checkNumerics() || !driftAngles_.checkNumerics()
+		|| !driftRate_.checkNumerics() || !noiseStdDev_.checkNumerics() || !source_
+		|| !source_->checkNumerics() || !noiseGenerator_.checkNumerics()) {
+		return (0);
 	}
 	return (1);
 }
 
 void	SensorSimulator::reset() {
-
-	driftOmega.setVariables(0.0f, 0.0f, 0.0f);
-	driftAngles.setVariables(0.0f, 0.0f, 0.0f);
-	driftRate.setVariables(0.0f, 0.0f, 0.0f);
-
-	noiseGenerator.reset();
-
-	driftOmega.assertCheck();
-	driftAngles.assertCheck();
-	driftRate.assertCheck();
-
+	driftOmega_.setVariables(0.0f, 0.0f, 0.0f);
+	driftAngles_.setVariables(0.0f, 0.0f, 0.0f);
+	driftRate_.setVariables(0.0f, 0.0f, 0.0f);
+	noiseGenerator_.reset();
 }
 
 SensorSimulator::~SensorSimulator() {

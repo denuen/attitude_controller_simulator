@@ -1,167 +1,181 @@
 #include "../../includes/physics/RigidBodySimulator.hpp"
-#include <math.h>
 #include <cassert>
-#include <iostream>
+#include <cmath>
 
-RigidBodySimulator::RigidBodySimulator():
-pitch(0.0f), yaw(0.0f), roll(0.0f), dt(0.0f), omega(0.0f, 0.0f, 0.0f), inertia(1.0f, 1.0f, 1.0f) {
-
-	compute_inverse_inertia();
-
+RigidBodySimulator::RigidBodySimulator() :
+pitch_(0.0f), yaw_(0.0f), roll_(0.0f), dt_(0.0f),
+omega_(0.0f, 0.0f, 0.0f), inertia_(1.0f, 1.0f, 1.0f) {
+	computeInverseInertia();
 }
 
 RigidBodySimulator::RigidBodySimulator(const Vector3f& inertia) :
-pitch(0.0f), yaw(0.0f), roll(0.0f), dt(0.0f), omega(0.0f, 0.0f, 0.0f), inertia(inertia) {
-
-	compute_inverse_inertia();
-
+pitch_(0.0f), yaw_(0.0f), roll_(0.0f), dt_(0.0f),
+omega_(0.0f, 0.0f, 0.0f), inertia_(inertia) {
+	computeInverseInertia();
 }
 
-RigidBodySimulator::RigidBodySimulator(const RigidBodySimulator& rbSim) {
-
-	pitch = rbSim.pitch;
-	yaw = rbSim.yaw;
-	roll = rbSim.roll;
-	dt = rbSim.dt;
-	omega = rbSim.omega;
-	inertia = rbSim.inertia;
-	compute_inverse_inertia();
-
+RigidBodySimulator::RigidBodySimulator(const RigidBodySimulator& rbs) :
+pitch_(rbs.pitch_), yaw_(rbs.yaw_), roll_(rbs.roll_), dt_(rbs.dt_),
+omega_(rbs.omega_), inertia_(rbs.inertia_),
+inverseInertia_(rbs.inverseInertia_) {
 }
 
-RigidBodySimulator&	RigidBodySimulator::operator=(const RigidBodySimulator& rbSim) {
-
-	if (this != &rbSim) {
-		pitch = rbSim.pitch;
-		yaw = rbSim.yaw;
-		roll = rbSim.roll;
-		dt = rbSim.dt;
-		omega = rbSim.omega;
-		inertia = rbSim.inertia;
-		compute_inverse_inertia();
+RigidBodySimulator& RigidBodySimulator::operator=(const RigidBodySimulator& rbs) {
+	if (this != &rbs) {
+		pitch_ = rbs.pitch_;
+		yaw_ = rbs.yaw_;
+		roll_ = rbs.roll_;
+		dt_ = rbs.dt_;
+		omega_ = rbs.omega_;
+		inertia_ = rbs.inertia_;
+		inverseInertia_ = rbs.inverseInertia_;
 	}
 	return (*this);
 }
 
-void	RigidBodySimulator::compute_inverse_inertia() {
+void RigidBodySimulator::setPitch(float pitch) {
+	assert(!std::isinf(pitch) && !std::isnan(pitch)
+		&& "Error: Pitch value must be finite");
+	pitch_ = pitch;
+}
 
+void RigidBodySimulator::setYaw(float yaw) {
+	assert(!std::isinf(yaw) && !std::isnan(yaw)
+		&& "Error: Yaw value must be finite");
+	yaw_ = yaw;
+}
+
+void RigidBodySimulator::setRoll(float roll) {
+	assert(!std::isinf(roll) && !std::isnan(roll)
+		&& "Error: Roll value must be finite");
+	roll_ = roll;
+}
+
+void RigidBodySimulator::setInertia(const Vector3f& inertia) {
 	assert(inertia.getX() > 0.0f && inertia.getY() > 0.0f
-		&& inertia.getZ() > 0.0f && "Error: Inertia components must be positive");
+		&& inertia.getZ() > 0.0f
+		&& "Error: Inertia components must be positive");
 
-	inverseInertia.setX(1.0f / inertia.getX());
-	inverseInertia.setY(1.0f / inertia.getY());
-	inverseInertia.setZ(1.0f / inertia.getZ());
-
+	inertia_ = inertia;
+	computeInverseInertia();
 }
 
-void	RigidBodySimulator::setPitch(const float pitch) {
+void RigidBodySimulator::update(float dt, const Vector3f& torque) {
+	assert(!std::isnan(dt) && !std::isinf(dt) && dt > 0.0f
+		&& "Error: time step 'dt' must be a finite positive number");
+	assert(torque.checkNumerics() && "Error: Torque components must be finite");
 
-	assert(!std::isinf(pitch) && !std::isnan(pitch) && "Error: Pitch value must be finite");
-	this->pitch = pitch;
+	updateAngularVelocity(dt, torque);
+	updateEulerAngles(dt);
+	normalizeAngles();
 
+	dt_ = dt;
 }
 
-void	RigidBodySimulator::setYaw(const float yaw) {
+void RigidBodySimulator::updateAngularVelocity(float dt, const Vector3f& torque) {
+	// Compute angular momentum: I·ω
+	const Vector3f angularMomentum = componentMultiply(inertia_, omega_);
 
-	assert(!std::isinf(yaw) && !std::isnan(yaw) && "Error: Yaw value must be finite");
-	this->yaw = yaw;
+	// Compute gyroscopic term: ω × (I·ω)
+	const Vector3f gyroscopicTerm = cross(omega_, angularMomentum);
 
+	// Net torque: τ - ω × (I·ω)
+	const Vector3f netTorque = torque - gyroscopicTerm;
+
+	// Angular acceleration: α = I^(-1) * netTorque
+	const Vector3f angularAcceleration = componentMultiply(inverseInertia_, netTorque);
+
+	// Euler integration: ω = ω_0 + α * dt
+	omega_ = omega_ + angularAcceleration * dt;
+
+	assert(omega_.checkNumerics()
+		&& "Error: angular velocity components must be finite after update");
 }
 
-void	RigidBodySimulator::setRoll(const float roll) {
+void RigidBodySimulator::updateEulerAngles(float dt) {
+	const float epsilon	 = 1e-6f;
 
-	assert(!std::isinf(roll) && !std::isnan(roll) && "Error: Roll value must be finite");
-	this->roll = roll;
+	// Body angular rates (p, q, r)
+	const float p = omega_.getX();
+	const float q = omega_.getY();
+	const float r = omega_.getZ();
 
-}
+	// Current Euler angles
+	const float phi	  = roll_;
+	const float theta = pitch_;
 
-void	RigidBodySimulator::setOmega(const Vector3f& omega) {
+	// Trigonometric values
+	const float sinPhi	 = sinf(phi);
+	const float cosPhi	 = cosf(phi);
+	float		cosTheta = cosf(theta);
 
-	this->omega = omega;
-
-}
-
-void	RigidBodySimulator::setInertia(const Vector3f& inertia) {
-
-	assert(inertia.getX() > 0.0f && inertia.getY() > 0.0f
-			&& inertia.getZ() > 0.0f && "Error: Inertia components must be positive");
-
-	this->inertia = inertia;
-
-	compute_inverse_inertia();
-
-}
-
-bool	RigidBodySimulator::checkNumerics(void) const {
-
-	if (std::isnan(pitch) || std::isinf(pitch)
-		|| std::isnan(yaw) || std::isinf(yaw)
-		|| std::isnan(roll) || std::isinf(roll)
-		|| std::isnan(dt) || std::isinf(dt) || dt < 0.0f
-		|| !omega.checkNumerics() || !inertia.checkNumerics()
-		|| !inverseInertia.checkNumerics()
-		|| inertia.getX() <= 0.0f || inertia.getY() <= 0.0f || inertia.getZ() <= 0.0f) {
-			return (0);
+	// The tangent is computed after a check on the cosine value to avoid
+	// division by (near)zero when theta is near pi/2
+	if (std::fabs(cosTheta) < epsilon) {
+		if (cosTheta >= 0)
+			cosTheta = epsilon;
+		else
+			cosTheta = -epsilon;
 	}
-	return (1);
+
+	const float tanTheta = sinf(theta) / cosTheta;
+
+	// Compute Euler angle derivatives using 3-2-1 transformation
+	const float phiDot = p + (q * sinPhi + r * cosPhi) * tanTheta;
+	const float thetaDot = q * cosPhi - r * sinPhi;
+	const float psiDot = (q * sinPhi + r * cosPhi) / cosTheta;
+
+	// Integrate Euler angles
+	roll_ += phiDot * dt;
+	pitch_ += thetaDot * dt;
+	yaw_ += psiDot * dt;
+
+	assert(!std::isinf(pitch_) && !std::isinf(yaw_) && !std::isinf(roll_)
+		&& !std::isnan(pitch_) && !std::isnan(yaw_) && !std::isnan(roll_)
+		&& "Error: angle components must be finite after update");
 }
 
-void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
+void	RigidBodySimulator::computeInverseInertia() {
+	assert(inertia_.getX() > 0.0f && inertia_.getY() > 0.0f
+		&& inertia_.getZ() > 0.0f
+		&& "Error: Inertia components must be positive");
 
-	assert(dt > 0.0f && "Error: Time step must be positive");
-
-	assert(!std::isinf(torque.getX()) && !std::isinf(torque.getY()) && !std::isinf(torque.getZ())
-		&& !std::isnan(torque.getX()) && !std::isnan(torque.getY()) && !std::isnan(torque.getZ())
-		&& "Error: Torque components must be finite");
-
-	// I·ω
-	Vector3f	angularMomentum = componentMultiply(inertia, omega);
-
-	// ω × (I·ω)
-	Vector3f	gyroscopicTerm = cross(omega, angularMomentum);
-
-	// net torque: τ - ω × (I·ω)
-	Vector3f	netTorque = torque - gyroscopicTerm;
-
-	// angular acceleration: α = I^(-1) * netTorque
-	Vector3f	angularAcceleration = componentMultiply(inverseInertia, netTorque);
-
-	// euler integration for angular velocity: ω = ω_0 + α * dt
-	omega = omega + angularAcceleration * dt;
-
-	assert(!std::isinf(omega.getX()) && !std::isinf(omega.getY()) && !std::isinf(omega.getZ())
-		&& !std::isnan(omega.getX()) && !std::isnan(omega.getY()) && !std::isnan(omega.getZ())
-		&& "Error: Angular velocity components must be finite after update");
-
-	roll += omega.getX() * dt;
-	pitch += omega.getY() * dt;
-	yaw += omega.getZ() * dt;
-
-	assert(!std::isinf(pitch) && !std::isinf(yaw) && !std::isinf(roll)
-		&& !std::isnan(pitch) && !std::isnan(yaw) && !std::isnan(roll)
-		&& "Error: Angle components must be finite after update");
-
-	normalize_angles();
-
-	this->dt = dt;
-
+	inverseInertia_.setX(1.0f / inertia_.getX());
+	inverseInertia_.setY(1.0f / inertia_.getY());
+	inverseInertia_.setZ(1.0f / inertia_.getZ());
 }
 
-void RigidBodySimulator::normalize_angles() {
-
-	const float	PI = 3.14159265359f;
-	const float	TWO_PI = 2.0f * PI;
+void	RigidBodySimulator::normalizeAngles() {
+	const float PI = 3.14159265359f;
+	const float TWO_PI = 2.0f * PI;
 
 	// [-π, π] range
-	while (pitch > PI) pitch -= TWO_PI;
-	while (pitch < -PI) pitch += TWO_PI;
+	while (pitch_ > PI)
+		pitch_ -= TWO_PI;
+	while (pitch_ < -PI)
+		pitch_ += TWO_PI;
 
-	while (yaw > PI) yaw -= TWO_PI;
-	while (yaw < -PI) yaw += TWO_PI;
+	while (yaw_ > PI)
+		yaw_ -= TWO_PI;
+	while (yaw_ < -PI)
+		yaw_ += TWO_PI;
 
-	while (roll > PI) roll -= TWO_PI;
-	while (roll < -PI) roll += TWO_PI;
+	while (roll_ > PI)
+		roll_ -= TWO_PI;
+	while (roll_ < -PI)
+		roll_ += TWO_PI;
+}
 
+bool RigidBodySimulator::checkNumerics() const {
+	if (std::isnan(pitch_) || std::isinf(pitch_) || std::isnan(yaw_)
+		|| std::isinf(yaw_) || std::isnan(roll_) || std::isinf(roll_)
+		|| std::isnan(dt_) || std::isinf(dt_) || dt_ < 0.0f
+		|| !omega_.checkNumerics() || !inertia_.checkNumerics()
+		|| !inverseInertia_.checkNumerics() || inertia_.getX() <= 0.0f
+		|| inertia_.getY() <= 0.0f || inertia_.getZ() <= 0.0f) {
+		return (0);
+	}
+	return (1);
 }
 
 RigidBodySimulator::~RigidBodySimulator() {

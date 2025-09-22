@@ -1,84 +1,89 @@
-#ifndef RIGIDBODYSIMULATOR_HPP
-#define RIGIDBODYSIMULATOR_HPP
+#ifndef RIGID_BODY_SIMULATOR_HPP
+#define RIGID_BODY_SIMULATOR_HPP
 
-#include "../physics/Vector3f.hpp"
-#include <cassert>
+#include "../../includes/physics/Vector3f.hpp"
 
-// Simulates rotational dynamics of a rigid body using Euler's rotational equations with gyroscopic coupling.
-class RigidBodySimulator
-{
-	private:
-		float		pitch;			// Current pitch angle in radians.
-		float		yaw;			// Current yaw angle in radians.
-		float		roll;			// Current roll angle in radians.
-		float		dt;				// Last used time step in seconds.
+class RigidBodySimulator {
 
-		Vector3f	omega;			// Angular velocity vector (rad/s).
-		Vector3f	inertia;		// Principal moments of inertia (Ixx, Iyy, Izz).
-		Vector3f	inverseInertia;	// Precomputed inverse of inertia.
+  private:
+	float pitch_; // Current pitch angle (rad)
+	float yaw_; // Current yaw angle (rad)
+	float roll_; // Current roll angle (rad)
+	float dt_; // Last simulation time step (s)
 
-		// Computes the inverse of the inertia vector.
-		void		compute_inverse_inertia();
+	Vector3f omega_; // Body angular velocity vector (rad/s)
+	Vector3f inertia_; // Principal moments of inertia (Ixx,Iyy,Izz)
+	Vector3f inverseInertia_; // Cached inverse of inertia (1/Ixx,1/Iyy,1/Izz)
 
-		// Wraps pitch, yaw, and roll to the [-π, π] range.
-		void		normalize_angles();
+	// Recompute inverseInertia_ from inertia_
+	void computeInverseInertia();
 
-	public:
-		// Constructs a rigid body with unit inertia and zero initial state.
-		RigidBodySimulator();
+	// Wrap Euler angles to [-pi, pi]
+	void normalizeAngles();
 
-		// Constructs a rigid body with specified principal inertia.
-		explicit RigidBodySimulator(const Vector3f& inertia);
+	// Integrate omega
+	void updateAngularVelocity(float dt, const Vector3f& torque);
 
-		// Copy constructor.
-		RigidBodySimulator(const RigidBodySimulator& rbSim);
+	// Integrate Euler angles from omega_
+	void updateEulerAngles(float dt);
 
-		// Copy assignment operator.
-		RigidBodySimulator&		operator=(const RigidBodySimulator& rbSim);
+  public:
+	// Constructs a rigid body simulator with zero angles, unit inertia
+	RigidBodySimulator();
 
-		// Sets the pitch angle in radians.
-		void					setPitch(const float pitch);
+	// Constructs with specified inertia vector (Ixx,Iyy,Izz)
+	explicit RigidBodySimulator(const Vector3f& inverseInertia);
 
-		// Sets the yaw angle in radians.
-		void					setYaw(const float yaw);
+	// Copy constructor
+	RigidBodySimulator(const RigidBodySimulator& rbs);
 
-		// Sets the roll angle in radians.
-		void					setRoll(const float roll);
+	// Copy assignment operator
+	RigidBodySimulator&	operator=(const RigidBodySimulator& rbs);
 
-		// Sets the angular velocity vector.
-		void					setOmega(const Vector3f& omega);
+	// Sets pitch angle (rad) with numeric validation
+	void setPitch(float pitch);
 
-		// Sets the inertia vector and recomputes its inverse.
-		void					setInertia(const Vector3f& inertia);
+	// Sets yaw angle (rad) with numeric validation
+	void setYaw(float yaw);
 
-		// Returns the current pitch angle.
-		inline float			getPitch(void) const { return (pitch); }
+	// Sets roll angle (rad) with numeric validation
+	void setRoll(float roll);
 
-		// Returns the current yaw angle.
-		inline float			getYaw(void) const { return (yaw); }
+	// Sets body angular velocity (rad/s)
+	inline void setOmega(const Vector3f& omega) { omega_ = omega; }
 
-		// Returns the current roll angle.
-		inline float			getRoll(void) const { return (roll); }
+	// Sets principal moments of inertia and recompute inverse
+	inline void setInertia(const Vector3f& inertia);
 
-		// Returns the last time step used in update.
-		inline float			getDt(void) const { return (dt); }
+	// Returns current pitch (rad)
+	inline float getPitch() const { return (pitch_); }
 
-		// Returns the current angular velocity vector.
-		inline const Vector3f&	getOmega(void) const { return (omega); }
+	// Returns current yaw (rad)
+	inline float getYaw() const { return (yaw_); }
 
-		// Returns the current inertia vector.
-		inline const Vector3f&	getInertia(void) const { return (inertia); }
+	// Returns current roll (rad)
+	inline float getRoll() const { return (roll_); }
 
-		// Returns the inverse inertia vector.
-		inline const Vector3f&	getInverseInertia(void) const { return (inverseInertia); }
+	// Returns last simulation time step (s)
+	inline float getDt() const { return (dt_); }
 
-		bool					checkNumerics(void) const;
-		
-		// Integrates angular dynamics using Euler's rotational equations including gyroscopic effects.
-		void					update(float dt, const Vector3f& torque);
+	// Returns current angular velocity vector (rad/s)
+	inline Vector3f getOmega() const { return (omega_); }
 
-		// Destructor.
-		~RigidBodySimulator();
+	// Returns principal moments of inertia (Ixx,Iyy,Izz)
+	inline Vector3f getInertia() const { return (inertia_); }
+
+	// Returns cached inverse inertia (1/Ixx,1/Iyy,1/Izz)
+	inline Vector3f getInverseInertia() const { return (inverseInertia_); }
+
+	// Advance simulation by dt with applied body-frame torque (N·m)
+	void update(float dt, const Vector3f& torque);
+
+	// Validate internal numerics (finite, non-NaN, positive inertia)
+	bool checkNumerics() const;
+
+	// Default destructor
+	~RigidBodySimulator();
 };
 
 #endif

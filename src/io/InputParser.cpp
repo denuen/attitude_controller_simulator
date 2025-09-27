@@ -6,15 +6,19 @@
 
 InputParser::InputParser(void) :
 kp_(), ki_(), kd_(), inertia_(), driftRate_(),
-noiseStdDev_(), actuatorDelay_(0.0f), lastTime_(-1.0f),
-setpoints_() {
+noiseStdDev_(), maxTorquePerAxis_(), initialAttitude_(), initialAngularVelocity_(),
+actuatorDelay_(0.0f), maxTorqueMagnitude_(0.0f), controllerSmoothing_(0.0f),
+controllerAntiWindup_(0.0f), lastTime_(-1.0f), setpoints_() {
 
 }
 
 InputParser::InputParser(const InputParser& inputParser) :
 kp_(inputParser.kp_), ki_(inputParser.ki_), kd_(inputParser.kd_),
 inertia_(inputParser.inertia_), driftRate_(inputParser.driftRate_),
-noiseStdDev_(inputParser.noiseStdDev_), actuatorDelay_(inputParser.actuatorDelay_),
+noiseStdDev_(inputParser.noiseStdDev_), maxTorquePerAxis_(inputParser.maxTorquePerAxis_),
+initialAttitude_(inputParser.initialAttitude_), initialAngularVelocity_(inputParser.initialAngularVelocity_),
+actuatorDelay_(inputParser.actuatorDelay_), maxTorqueMagnitude_(inputParser.maxTorqueMagnitude_),
+controllerSmoothing_(inputParser.controllerSmoothing_), controllerAntiWindup_(inputParser.controllerAntiWindup_),
 lastTime_(inputParser.lastTime_), setpoints_(inputParser.setpoints_) {
 
 }
@@ -28,7 +32,13 @@ InputParser&	InputParser::operator=(const InputParser& inputParser) {
 		inertia_ = inputParser.inertia_;
 		driftRate_ = inputParser.driftRate_;
 		noiseStdDev_ = inputParser.noiseStdDev_;
+		maxTorquePerAxis_ = inputParser.maxTorquePerAxis_;
+		initialAttitude_ = inputParser.initialAttitude_;
+		initialAngularVelocity_ = inputParser.initialAngularVelocity_;
 		actuatorDelay_ = inputParser.actuatorDelay_;
+		maxTorqueMagnitude_ = inputParser.maxTorqueMagnitude_;
+		controllerSmoothing_ = inputParser.controllerSmoothing_;
+		controllerAntiWindup_ = inputParser.controllerAntiWindup_;
 		lastTime_ = inputParser.lastTime_;
 		setpoints_ = inputParser.setpoints_;
 	}
@@ -209,7 +219,29 @@ void	InputParser::loadConfigFromTXT(const std::string& filename) {
 	std::getline(input, line);
 	parseFloat(line, actuatorDelay_);
 
+	std::getline(input, line);
+	parseVector3f(line, maxTorquePerAxis_);
+
+	std::getline(input, line);
+	parseFloat(line, maxTorqueMagnitude_);
+
+	std::getline(input, line);
+	parseFloat(line, controllerSmoothing_);
+
+	std::getline(input, line);
+	parseFloat(line, controllerAntiWindup_);
+
+	std::getline(input, line);
+	parseVector3f(line, initialAttitude_);
+
+	std::getline(input, line);
+	parseVector3f(line, initialAngularVelocity_);
+
 	while (std::getline(input, line)) {
+		// Skip empty lines
+		if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
+			continue;
+		}
 		parseSetpointLine(line);
 	}
 
@@ -268,6 +300,20 @@ void	InputParser::loadConfigFromXML(const std::string& filename) {
 	assert (tmp && "Error: missing ActuatorProperties section in XML file");
 
 	parseFloat(tmp->FirstChildElement("Delay"), actuatorDelay_);
+	parseVector3f(tmp->FirstChildElement("MaxTorquePerAxis"), maxTorquePerAxis_);
+	parseFloat(tmp->FirstChildElement("MaxTorqueMagnitude"), maxTorqueMagnitude_);
+
+	tmp = root->FirstChildElement("ControllerParameters");
+	assert (tmp && "Error: missing ControllerParameters section in XML file");
+
+	parseFloat(tmp->FirstChildElement("Smoothing"), controllerSmoothing_);
+	parseFloat(tmp->FirstChildElement("AntiWindup"), controllerAntiWindup_);
+
+	tmp = root->FirstChildElement("InitialConditions");
+	assert (tmp && "Error: missing InitialConditions section in XML file");
+
+	parseVector3f(tmp->FirstChildElement("Attitude"), initialAttitude_);
+	parseVector3f(tmp->FirstChildElement("AngularVelocity"), initialAngularVelocity_);
 
 	tmp = root->FirstChildElement("SetpointSequence");
 	assert(tmp && "Error: missing setpoints_equence section");
@@ -297,8 +343,11 @@ void	InputParser::loadConfigFile(const std::string& filename) {
 
 void	InputParser::reset(void) {
 
-	kp_ = ki_ = kd_ = inertia_ = driftRate_ = noiseStdDev_ = Vector3f(0.0f, 0.0f, 0.0f);
+	kp_ = ki_ = kd_ = inertia_ = driftRate_ = noiseStdDev_ = maxTorquePerAxis_ = initialAttitude_ = initialAngularVelocity_ = Vector3f(0.0f, 0.0f, 0.0f);
 	actuatorDelay_ = 0.0f;
+	maxTorqueMagnitude_ = 0.0f;
+	controllerSmoothing_ = 0.0f;
+	controllerAntiWindup_ = 0.0f;
 	lastTime_ = -1.0f;
 	setpoints_.clear();
 
@@ -308,7 +357,11 @@ bool	InputParser::checkNumerics() const {
 
 	if (!kp_.checkNumerics() || !ki_.checkNumerics() || !kd_.checkNumerics()
 		|| !inertia_.checkNumerics() || !driftRate_.checkNumerics() || !noiseStdDev_.checkNumerics()
+		|| !maxTorquePerAxis_.checkNumerics() || !initialAttitude_.checkNumerics() || !initialAngularVelocity_.checkNumerics()
 		|| std::isnan(actuatorDelay_) || std::isinf(actuatorDelay_) || actuatorDelay_ < 0.0f
+		|| std::isnan(maxTorqueMagnitude_) || std::isinf(maxTorqueMagnitude_) || maxTorqueMagnitude_ < 0.0f
+		|| std::isnan(controllerSmoothing_) || std::isinf(controllerSmoothing_) || controllerSmoothing_ < 0.0f
+		|| std::isnan(controllerAntiWindup_) || std::isinf(controllerAntiWindup_) || controllerAntiWindup_ < 0.0f
 		|| std::isnan(lastTime_) || std::isinf(lastTime_)
 		|| inertia_.getX() <= 0.0f || inertia_.getY() <= 0.0f || inertia_.getZ() <= 0.0f) {
 			return (false);
@@ -377,6 +430,32 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 	}
 
 	parseFloat(tmp->FirstChildElement("Delay"), actuatorDelay_);
+
+	// Parse additional ActuatorProperties
+	if (!tmp->FirstChildElement("MaxTorquePerAxis") || !tmp->FirstChildElement("MaxTorqueMagnitude")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseVector3f(tmp->FirstChildElement("MaxTorquePerAxis"), maxTorquePerAxis_);
+	parseFloat(tmp->FirstChildElement("MaxTorqueMagnitude"), maxTorqueMagnitude_);
+
+	// Parse ControllerParameters
+	tmp = root->FirstChildElement("ControllerParameters");
+	if (!tmp || !tmp->FirstChildElement("Smoothing") || !tmp->FirstChildElement("AntiWindup")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseFloat(tmp->FirstChildElement("Smoothing"), controllerSmoothing_);
+	parseFloat(tmp->FirstChildElement("AntiWindup"), controllerAntiWindup_);
+
+	// Parse InitialConditions
+	tmp = root->FirstChildElement("InitialConditions");
+	if (!tmp || !tmp->FirstChildElement("Attitude") || !tmp->FirstChildElement("AngularVelocity")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseVector3f(tmp->FirstChildElement("Attitude"), initialAttitude_);
+	parseVector3f(tmp->FirstChildElement("AngularVelocity"), initialAngularVelocity_);
 
 	// Parse SetpointSequence
 	tmp = root->FirstChildElement("SetpointSequence");
@@ -454,8 +533,54 @@ ErrorCode	InputParser::loadConfigFromTXTSafe(const std::string& filename) {
 	}
 	parseFloat(line, actuatorDelay_);
 
+	// Parse maxTorquePerAxis_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, maxTorquePerAxis_);
+
+	// Parse maxTorqueMagnitude_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseFloat(line, maxTorqueMagnitude_);
+
+	// Parse controllerSmoothing_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseFloat(line, controllerSmoothing_);
+
+	// Parse controllerAntiWindup_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseFloat(line, controllerAntiWindup_);
+
+	// Parse initialAttitude_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, initialAttitude_);
+
+	// Parse initialAngularVelocity_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, initialAngularVelocity_);
+
 	// Parse setpoints
 	while (std::getline(input, line)) {
+		// Skip empty lines
+		if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
+			continue;
+		}
 		parseSetpointLine(line);
 	}
 

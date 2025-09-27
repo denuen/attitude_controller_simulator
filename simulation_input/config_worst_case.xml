@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Worst Case Configuration for Attitude Controller Simulator
+- Challenging conditions to test controller robustness
+- High noise, significant disturbances
+- Poor actuator performance with delays
+- Degraded sensor quality
+- Aggressive maneuvers to stress the system
+-->
+<AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ControllerGains>
+        <!-- Pitch=x, Roll=y, Yaw=z - Lower gains to prevent instability -->
+        <Kp x="2.5" y="2.2" z="2.0" />
+        <Ki x="0.2" y="0.18" z="0.15" />
+        <Kd x="1.0" y="0.9" z="0.8" />
+    </ControllerGains>
+
+    <PhysicalProperties>
+        <!-- Moment of inertia (kg⋅m²) - Asymmetric, unbalanced -->
+        <Inertia x="200.0" y="180.0" z="220.0" />
+    </PhysicalProperties>
+
+    <SensorCharacteristics>
+        <!-- High drift rate for degraded sensors -->
+        <DriftRate x="0.0001" y="0.0001" z="0.0001" />
+        <!-- High noise standard deviation -->
+        <NoiseStdDev x="0.015" y="0.015" z="0.015" />
+    </SensorCharacteristics>
+
+    <ActuatorProperties>
+        <!-- Slow, sluggish response (80ms delay) -->
+        <Delay>0.08</Delay>
+        <!-- Limited torque capabilities (Nm) -->
+        <MaxTorquePerAxis x="2.5" y="2.5" z="3.0" />
+        <!-- Low maximum total torque magnitude (Nm) -->
+        <MaxTorqueMagnitude>4.0</MaxTorqueMagnitude>
+    </ActuatorProperties>
+
+    <ControllerParameters>
+        <!-- Low smoothing for responsiveness under poor conditions (0.0-1.0) -->
+        <Smoothing>0.2</Smoothing>
+        <!-- Low anti-windup to allow aggressive integral action when needed -->
+        <AntiWindup>0.1</AntiWindup>
+    </ControllerParameters>
+
+    <InitialConditions>
+        <!-- Large initial attitude deviation (pitch, yaw, roll in radians) -->
+        <Attitude x="0.15" y="-0.12" z="0.18" />
+        <!-- High initial angular velocity (rad/s) -->
+        <AngularVelocity x="0.05" y="-0.04" z="0.06" />
+    </InitialConditions>
+
+    <SetpointSequence>
+        <!-- Time=0s: Start at origin -->
+        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
+
+        <!-- Time=4s: Sharp pitch maneuver -->
+        <Setpoint time="4.0" roll="0.0" pitch="0.87" yaw="0.0" />
+
+        <!-- Time=8s: Add rapid yaw -->
+        <Setpoint time="8.0" roll="0.0" pitch="0.87" yaw="0.70" />
+
+        <!-- Time=12s: Full 3-axis maneuver -->
+        <Setpoint time="12.0" roll="0.61" pitch="0.87" yaw="0.70" />
+
+        <!-- Time=16s: Reverse direction rapidly -->
+        <Setpoint time="16.0" roll="0.61" pitch="-0.52" yaw="0.70" />
+
+        <!-- Time=20s: Another sharp change -->
+        <Setpoint time="20.0" roll="0.61" pitch="-0.52" yaw="-0.44" />
+
+        <!-- Time=24s: Final aggressive move -->
+        <Setpoint time="24.0" roll="-0.79" pitch="-0.52" yaw="-0.44" />
+
+        <!-- Time=30s: Return to origin (long settling time needed) -->
+        <Setpoint time="30.0" roll="0.0" pitch="0.0" yaw="0.0" />
+    </SetpointSequence>
+</AttitudeControllerConfig>

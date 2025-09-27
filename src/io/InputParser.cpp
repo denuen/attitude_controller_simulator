@@ -19,7 +19,7 @@ lastTime_(inputParser.lastTime_), setpoints_(inputParser.setpoints_) {
 
 }
 
-InputParser& InputParser::operator=(const InputParser& inputParser) {
+InputParser&	InputParser::operator=(const InputParser& inputParser) {
 
 	if (this != &inputParser) {
 		kp_ = inputParser.kp_;
@@ -227,10 +227,22 @@ void	InputParser::loadConfigFromXML(const std::string& filename) {
 	std::string		line;
 	TiXmlDocument	xmlDocument(filename.c_str());
 
-	assert (xmlDocument.LoadFile() && "Error: cannot load XML file");
+	if (!xmlDocument.LoadFile()) {
+		assert(false && "Error: Cannot load XML file");
+		std::cerr << "Error: Cannot load XML file '" << filename << "'"
+				<< std::endl;
+		std::cerr << "TinyXML Error: " << xmlDocument.ErrorDesc() << std::endl;
+		return;
+	}
 
-	TiXmlElement*	root = xmlDocument.FirstChildElement("AttitudeControllerConfig");
-	assert (root && "Error: invalid XML structure");
+	TiXmlElement* root = xmlDocument.FirstChildElement("AttitudeControllerConfig");
+	if (!root) {
+		assert(false && "Error: invalid XML structure");
+		std::cerr << "Error: Invalid XML structure - missing "
+					 "'AttitudeControllerConfig' root element"
+				  << std::endl;
+		return;
+	}
 
 	TiXmlElement*	tmp = root->FirstChildElement("ControllerGains");
 	assert (tmp && "Error: missing ControllerGains section in XML file");

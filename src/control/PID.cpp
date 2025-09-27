@@ -64,19 +64,19 @@ void	PID::setKp(float kp) {
 	kp_ = kp;
 }
 
-void PID::setKi(float ki) {
+void	PID::setKi(float ki) {
 	assert(!std::isinf(ki) && !std::isnan(ki)
 		&& "Error: ki value must be finite");
 	ki_ = ki;
 }
 
-void PID::setKd(float kd) {
+void	PID::setKd(float kd) {
 	assert(!std::isinf(kd) && !std::isnan(kd)
 		&& "Error: kd value must be finite");
 	kd_ = kd;
 }
 
-void PID::setGains(float kp, float ki, float kd) {
+void	PID::setGains(float kp, float ki, float kd) {
 	assert(!std::isinf(kp) && !std::isnan(kp) && !std::isinf(ki)
 		&& !std::isnan(ki) && !std::isinf(kd) && !std::isnan(kd)
 		&& "Error: gain values must be finite");
@@ -86,50 +86,50 @@ void PID::setGains(float kp, float ki, float kd) {
 	kd_ = kd;
 }
 
-void PID::setDerivativeSmoothing(float alpha) {
+void	PID::setDerivativeSmoothing(float alpha) {
 	assert(!std::isinf(alpha) && !std::isnan(alpha)
 		&& "Error: alpha value must be finite");
 	derivativeAlpha_ = alpha;
 }
 
-void PID::setAntiWindupTau(float tau) {
+void	PID::setAntiWindupTau(float tau) {
 	assert(!std::isinf(tau) && !std::isnan(tau)
 		&& "Error: tau value must be finite");
 	antiWindupTau_ = tau;
 }
 
-float PID::compute(const float setpoint, const float measure, const float dt) {
+float	PID::compute(const float setpoint, const float measure, const float dt) {
 	assert(dt > 0.0f && "Error: dt must be positive");
 
 	// Discrete PID implementation (Implicit Backward Euler)
 	// Error at the time t (e(t) = r(t) - y(t))
-	const float error = setpoint - measure;
+	const float	error = setpoint - measure;
 	assert(!std::isinf(error) && !std::isnan(error) && "Error: invalid error");
 
 	// Derivative (finite difference) with optional exponential smoothing
 	// Exponential moving average (EMA) filter to reduce the derivative noise
 	// filteredDerivative = alpha * filteredDerivative_prev + (1 - alpha) * rawDerivative
-	const float rawDerivative = (error - previousError_) / dt;
+	const float	rawDerivative = (error - previousError_) / dt;
 	filteredDerivative_ = derivativeAlpha_ * filteredDerivative_
 						+ (1.0f - derivativeAlpha_) * rawDerivative;
 
 	// Proportional and derivative terms, integral independent
-	const float proportionalTerm = kp_ * error;
-	const float derivativeTerm = kd_ * filteredDerivative_;
+	const float	proportionalTerm = kp_ * error;
+	const float	derivativeTerm = kd_ * filteredDerivative_;
 	// u(t) = Kp * e(t) + /integral{e(tau) dtau} * Ki + Kd * d/dt e(t)
 	// uk = Kp * ek + Ki * Ek + Kd * (ek - ek-1)/dt
 
-	float newIntegral = integral_;
+	float	newIntegral = integral_;
 
 	if (ki_ > 0.0f) {
 		// Implicit solution
 		// I[k+1] = ( I[k] + dt*e[k] + (dt/tau)*((uSat - (Kp*e + Kd*d))/Ki) ) / (1 + dt/tau)
 
 		// First estimate without integral (pdTerm = Kp*e + Kd*d)
-		const float pdTerm = proportionalTerm + derivativeTerm;
+		const float	pdTerm = proportionalTerm + derivativeTerm;
 
 		// Ensure tau is reasonable to prevent numerical issues
-		const float effectiveTau = std::max(antiWindupTau_, dt * 10.0f);
+		const float	effectiveTau = std::max(antiWindupTau_, dt * 10.0f);
 
 		// Without saturation, the output would be pdTerm + Ki*Inew
 		// To solve with the implicit approach the saturation expressed in function of
@@ -137,13 +137,13 @@ float PID::compute(const float setpoint, const float measure, const float dt) {
 		// Try both the cases: saturated and not saturated
 
 		// Non-saturated case
-		const float integralCandidate = (integral_ + dt * error) / (1.0f + (dt / effectiveTau));
-		const float unSatOutputCandidate = pdTerm + ki_ * integralCandidate;
+		const float	integralCandidate = (integral_ + dt * error) / (1.0f + (dt / effectiveTau));
+		const float	unSatOutputCandidate = pdTerm + ki_ * integralCandidate;
 
-		float satOutput = std::min(std::max(unSatOutputCandidate, PID::DEFAULT_OUTPUT_MIN),
+		float	satOutput = std::min(std::max(unSatOutputCandidate, PID::DEFAULT_OUTPUT_MIN),
 							PID::DEFAULT_OUTPUT_MAX);
 
-		const float epsilon = 1e-6f;
+		const float	epsilon = 1e-6f;
 		if (std::abs(unSatOutputCandidate - satOutput) < epsilon) {
 			// No saturation
 			newIntegral = integralCandidate;
@@ -163,7 +163,7 @@ float PID::compute(const float setpoint, const float measure, const float dt) {
 	integral_ = newIntegral;
 
 	// Final output
-	float output = proportionalTerm + ki_ * integral_ + derivativeTerm;
+	float	output = proportionalTerm + ki_ * integral_ + derivativeTerm;
 
 	// Final saturation
 	output = std::min(std::max(output, PID::DEFAULT_OUTPUT_MIN),
@@ -175,13 +175,13 @@ float PID::compute(const float setpoint, const float measure, const float dt) {
 	return (output);
 }
 
-void PID::reset() {
+void	PID::reset() {
 	integral_ = 0.0f;
 	previousError_ = 0.0f;
 	filteredDerivative_ = 0.0f;
 }
 
-bool PID::checkNumerics() const {
+bool	PID::checkNumerics() const {
 	if (std::isnan(kp_) || std::isinf(kp_)
 		|| std::isnan(ki_) || std::isinf(ki_)
 		|| std::isnan(kd_) || std::isinf(kd_)

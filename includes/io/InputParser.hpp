@@ -10,12 +10,12 @@
 class InputParser {
 
 	private:
-		Vector3f	kp_;		 // Proportional gains for PID controller (x, y, z axes)
-		Vector3f	ki_;		 // Integral gains for PID controller (x, y, z axes)
-		Vector3f	kd_;		 // Derivative gains for PID controller (x, y, z axes)
-		Vector3f	inertia_;	 // Moment of inertia tensor diagonal (Ixx, Iyy, Izz)
+		Vector3f	kp_; // Proportional gains for PID controller (x, y, z axes)
+		Vector3f	ki_; // Integral gains for PID controller (x, y, z axes)
+		Vector3f	kd_; // Derivative gains for PID controller (x, y, z axes)
+		Vector3f	inertia_; // Moment of inertia tensor diagonal (Ixx, Iyy, Izz)
 		Vector3f	driftRate_; // Sensor drift rates (deg/s for each axis)
-		Vector3f	noiseStdDev_;	 // Gaussian noise standard deviation for sensors
+		Vector3f	noiseStdDev_; // Gaussian noise standard deviation for sensors
 		float		actuatorDelay_; // Actuator response delay in seconds
 
 		float		lastTime_; // Last processed time for setpoint interpolation

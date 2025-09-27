@@ -84,10 +84,10 @@ $(NAME_TEST_CONTROLLER): $(OBJ_CONTROL) $(OBJ_PHYSICS) $(TEST_DIR)/control/test_
 $(NAME_TEST_INPUTPARSER): $(OBJ_IO) $(OBJ_PHYSICS) $(TEST_DIR)/io/test_input_parser.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) $(OBJ_IO) $(OBJ_PHYSICS) $(TEST_DIR)/io/test_input_parser.cpp $(TINYXML_LIB) -o $@
 
-$(NAME_TEST_SIMMANAGER): $(OBJ_ALL) $(TEST_DIR)/manager/test_simulation_manager.cpp
+$(NAME_TEST_SIMMANAGER): $(OBJ_ALL) $(TEST_DIR)/manager/test_simulation_manager.cpp | $(OUTPUT_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) $(OBJ_ALL) $(TEST_DIR)/manager/test_simulation_manager.cpp $(TINYXML_LIB) -o $@
 
-$(NAME_MAIN): $(OBJ_ALL) main.cpp
+$(NAME_MAIN): $(OBJ_ALL) main.cpp | $(OUTPUT_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TINYXML_INC) $(OBJ_ALL) main.cpp $(TINYXML_LIB) -o $@
 
 $(NAME_GTEST): $(OBJ_ALL) $(TEST_DIR)/gtest/test_gtest.cpp

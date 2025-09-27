@@ -2,6 +2,7 @@
 #define INPUTPARSER_HPP
 
 #include "../physics/Vector3f.hpp"
+#include "../manager/ErrorCodes.hpp"
 #include <string>
 #include <tinyxml.h>
 #include <vector>
@@ -77,11 +78,20 @@ class InputParser {
 		// Loads configuration parameters from XML file
 		void			loadConfigFromXML(const std::string& filename);
 
+		// Loads configuration parameters from XML file with error handling
+		ErrorCode		loadConfigFromXMLSafe(const std::string& filename);
+
 		// Loads configuration parameters from text file
 		void			loadConfigFromTXT(const std::string& filename);
 
+		// Loads configuration parameters from text file with error handling
+		ErrorCode		loadConfigFromTXTSafe(const std::string& filename);
+
 		// Automatically detects file format and loads configuration
 		void			loadConfigFile(const std::string& filename);
+
+		// Automatically detects file format and loads configuration with error handling
+		ErrorCode		loadConfigFileSafe(const std::string& filename);
 
 		// Loads setpoint trajectory from file
 		void			loadSetpointsFile(const std::string& filename);

@@ -17,7 +17,13 @@ class InputParser {
 		Vector3f	inertia_; // Moment of inertia tensor diagonal (Ixx, Iyy, Izz)
 		Vector3f	driftRate_; // Sensor drift rates (deg/s for each axis)
 		Vector3f	noiseStdDev_; // Gaussian noise standard deviation for sensors
+		Vector3f	maxTorquePerAxis_; // Maximum torque per axis (Nm)
+		Vector3f	initialAttitude_; // Initial attitude (pitch, yaw, roll in radians)
+		Vector3f	initialAngularVelocity_; // Initial angular velocity (rad/s)
 		float		actuatorDelay_; // Actuator response delay in seconds
+		float		maxTorqueMagnitude_; // Maximum total torque magnitude (Nm)
+		float		controllerSmoothing_; // Controller smoothing factor
+		float		controllerAntiWindup_; // Controller anti-windup factor
 
 		float		lastTime_; // Last processed time for setpoint interpolation
 
@@ -42,7 +48,7 @@ class InputParser {
 		void	parseSetpointLine(TiXmlElement* element);
 
 	public:
-		// Default constructor - initializes all parameters to zero
+		// Default constructor (sets all to zero)
 		InputParser();
 
 		// Copy constructor
@@ -71,6 +77,24 @@ class InputParser {
 
 		// Returns the actuator delay time
 		inline float	getActuatorDelay(void) const { return (actuatorDelay_); }
+
+		// Returns the maximum torque per axis
+		inline Vector3f	getMaxTorquePerAxis(void) const { return (maxTorquePerAxis_); }
+
+		// Returns the maximum torque magnitude
+		inline float	getMaxTorqueMagnitude(void) const { return (maxTorqueMagnitude_); }
+
+		// Returns the controller smoothing factor
+		inline float	getControllerSmoothing(void) const { return (controllerSmoothing_); }
+
+		// Returns the controller anti-windup factor
+		inline float	getControllerAntiWindup(void) const { return (controllerAntiWindup_); }
+
+		// Returns the initial attitude
+		inline Vector3f	getInitialAttitude(void) const { return (initialAttitude_); }
+
+		// Returns the initial angular velocity
+		inline Vector3f	getInitialAngularVelocity(void) const { return (initialAngularVelocity_); }
 
 		// Returns the setpoint available at or before given time t
 		Vector3f		getSetpointAt(float time) const;

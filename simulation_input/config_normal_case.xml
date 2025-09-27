@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Normal Case Configuration for Attitude Controller Simulator
+- Typical PID gains for realistic performance
+- Standard noise levels and disturbances
+- Commercial-grade actuators and sensors
+- Representative spacecraft conditions
+-->
+<AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ControllerGains>
+        <!-- Pitch=x, Roll=y, Yaw=z - Moderate response -->
+        <Kp x="5.0" y="4.5" z="4.0" />
+        <Ki x="0.5" y="0.4" z="0.3" />
+        <Kd x="1.8" y="1.6" z="1.5" />
+    </ControllerGains>
+
+    <PhysicalProperties>
+        <!-- Moment of inertia (kg⋅m²) - Standard satellite -->
+        <Inertia x="150.0" y="145.0" z="155.0" />
+    </PhysicalProperties>
+
+    <SensorCharacteristics>
+        <!-- Typical drift rate for commercial sensors -->
+        <DriftRate x="0.00005" y="0.00005" z="0.00005" />
+        <!-- Standard noise level -->
+        <NoiseStdDev x="0.003" y="0.003" z="0.003" />
+    </SensorCharacteristics>
+
+    <ActuatorProperties>
+        <!-- Typical response time (20ms delay) -->
+        <Delay>0.02</Delay>
+        <!-- Maximum torque per axis (Nm) -->
+        <MaxTorquePerAxis x="4.5" y="4.5" z="6.0" />
+        <!-- Maximum total torque magnitude (Nm) -->
+        <MaxTorqueMagnitude>8.0</MaxTorqueMagnitude>
+    </ActuatorProperties>
+
+    <ControllerParameters>
+        <!-- Low-pass filter smoothing factor (0.0-1.0) -->
+        <Smoothing>0.4</Smoothing>
+        <!-- Anti-windup factor for integral saturation -->
+        <AntiWindup>0.2</AntiWindup>
+    </ControllerParameters>
+
+    <InitialConditions>
+        <!-- Initial attitude (pitch, yaw, roll in radians) -->
+        <Attitude x="0.06" y="-0.035" z="0.045" />
+        <!-- Initial angular velocity (rad/s) -->
+        <AngularVelocity x="0.01" y="-0.006" z="0.008" />
+    </InitialConditions>
+
+    <!-- Setpoint Sequence -simulated mission profile -->
+    <SetpointSequence>
+        <!-- Time=0s: Start at origin -->
+        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
+
+        <!-- Time=8s: Earth pointing maneuver -->
+        <Setpoint time="8.0" roll="0.0" pitch="0.52" yaw="0.0" />
+
+        <!-- Time=16s: Sun pointing with roll -->
+        <Setpoint time="16.0" roll="0.26" pitch="0.52" yaw="0.35" />
+
+        <!-- Time=24s: Communication attitude -->
+        <Setpoint time="24.0" roll="0.44" pitch="0.17" yaw="0.35" />
+
+        <!-- Time=30s: Return to nadir -->
+        <Setpoint time="30.0" roll="0.0" pitch="0.0" yaw="0.0" />
+    </SetpointSequence>
+</AttitudeControllerConfig>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Best Case Configuration for Attitude Controller Simulator
+- Optimal PID gains for fast, stable response
+- Low noise, minimal disturbances
+- High-quality actuators with low delays
+- Ideal sensor characteristics
+-->
+<AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ControllerGains>
+        <!-- Pitch=x, Roll=y, Yaw=z - Well-tuned for fast response -->
+        <Kp x="8.0" y="7.0" z="6.0" />
+        <Ki x="0.8" y="0.6" z="0.5" />
+        <Kd x="2.5" y="2.2" z="2.0" />
+    </ControllerGains>
+
+    <PhysicalProperties>
+        <!-- Moment of inertia (kg⋅m²) - Well-balanced spacecraft -->
+        <Inertia x="120.0" y="115.0" z="125.0" />
+    </PhysicalProperties>
+
+    <SensorCharacteristics>
+        <!-- Very low drift rate for high-quality sensors -->
+        <DriftRate x="0.000005" y="0.000005" z="0.000005" />
+        <!-- Very low noise standard deviation -->
+        <NoiseStdDev x="0.0008" y="0.0008" z="0.0008" />
+    </SensorCharacteristics>
+
+    <ActuatorProperties>
+        <!-- Very responsive (5ms delay) -->
+        <Delay>0.005</Delay>
+        <!-- High-performance torque limits (Nm) -->
+        <MaxTorquePerAxis x="6.0" y="6.0" z="8.0" />
+        <!-- High maximum total torque magnitude (Nm) -->
+        <MaxTorqueMagnitude>12.0</MaxTorqueMagnitude>
+    </ActuatorProperties>
+
+    <ControllerParameters>
+        <!-- Higher smoothing for stability (0.0-1.0) -->
+        <Smoothing>0.6</Smoothing>
+        <!-- Strong anti-windup for precise control -->
+        <AntiWindup>0.3</AntiWindup>
+    </ControllerParameters>
+
+    <InitialConditions>
+        <!-- Minimal initial attitude deviation (pitch, yaw, roll in radians) -->
+        <Attitude x="0.02" y="-0.01" z="0.015" />
+        <!-- Very low initial angular velocity (rad/s) -->
+        <AngularVelocity x="0.003" y="-0.002" z="0.001" />
+    </InitialConditions>
+
+    <!-- Setpoint Sequence - Moderate maneuvers -->
+    <SetpointSequence>
+        <!-- Time=0s: Start at origin -->
+        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
+
+        <!-- Time=5s: Moderate pitch maneuver -->
+        <Setpoint time="5.0" roll="0.0" pitch="0.35" yaw="0.0" />
+
+        <!-- Time=10s: Combined maneuver -->
+        <Setpoint time="10.0" roll="0.17" pitch="0.35" yaw="0.26" />
+
+        <!-- Time=15s: Return to level -->
+        <Setpoint time="15.0" roll="0.17" pitch="0.0" yaw="0.0" />
+
+        <!-- Time=20s: Final position -->
+        <Setpoint time="20.0" roll="0.0" pitch="0.0" yaw="0.0" />
+    </SetpointSequence>
+</AttitudeControllerConfig>

@@ -19,7 +19,7 @@ class GaussianNoiseGenerator {
 		GaussianNoiseGenerator&	operator=(const GaussianNoiseGenerator& g);
 
 		// Generates normally distributed random values with specified mean and standard deviation
-		float	generate(float mean, float stddev);
+		float		generate(float mean, float stddev);
 
 		// Initializes the global random number generator with the current time
 		static void	initSeed();
@@ -28,7 +28,7 @@ class GaussianNoiseGenerator {
 			Checks the correctness of all the required values of the module.
 			Returns 1 if they are correct, 0 otherwise.
 		*/
-		bool	checkNumerics();
+		bool		checkNumerics();
 
 		// Clears the cached spare value
 		inline void	reset() { hasSpare_ = 0; }

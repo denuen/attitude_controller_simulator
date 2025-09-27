@@ -20,7 +20,7 @@ omega_(rbs.omega_), inertia_(rbs.inertia_),
 inverseInertia_(rbs.inverseInertia_) {
 }
 
-RigidBodySimulator& RigidBodySimulator::operator=(const RigidBodySimulator& rbs) {
+RigidBodySimulator&	RigidBodySimulator::operator=(const RigidBodySimulator& rbs) {
 	if (this != &rbs) {
 		pitch_ = rbs.pitch_;
 		yaw_ = rbs.yaw_;
@@ -33,25 +33,25 @@ RigidBodySimulator& RigidBodySimulator::operator=(const RigidBodySimulator& rbs)
 	return (*this);
 }
 
-void RigidBodySimulator::setPitch(float pitch) {
+void	RigidBodySimulator::setPitch(float pitch) {
 	assert(!std::isinf(pitch) && !std::isnan(pitch)
 		&& "Error: Pitch value must be finite");
 	pitch_ = pitch;
 }
 
-void RigidBodySimulator::setYaw(float yaw) {
+void	RigidBodySimulator::setYaw(float yaw) {
 	assert(!std::isinf(yaw) && !std::isnan(yaw)
 		&& "Error: Yaw value must be finite");
 	yaw_ = yaw;
 }
 
-void RigidBodySimulator::setRoll(float roll) {
+void	RigidBodySimulator::setRoll(float roll) {
 	assert(!std::isinf(roll) && !std::isnan(roll)
 		&& "Error: Roll value must be finite");
 	roll_ = roll;
 }
 
-void RigidBodySimulator::setInertia(const Vector3f& inertia) {
+void	RigidBodySimulator::setInertia(const Vector3f& inertia) {
 	assert(inertia.getX() > 0.0f && inertia.getY() > 0.0f
 		&& inertia.getZ() > 0.0f
 		&& "Error: Inertia components must be positive");
@@ -60,7 +60,7 @@ void RigidBodySimulator::setInertia(const Vector3f& inertia) {
 	computeInverseInertia();
 }
 
-void RigidBodySimulator::update(float dt, const Vector3f& torque) {
+void	RigidBodySimulator::update(float dt, const Vector3f& torque) {
 	assert(!std::isnan(dt) && !std::isinf(dt) && dt > 0.0f
 		&& "Error: time step 'dt' must be a finite positive number");
 	assert(torque.checkNumerics() && "Error: Torque components must be finite");
@@ -72,12 +72,12 @@ void RigidBodySimulator::update(float dt, const Vector3f& torque) {
 	dt_ = dt;
 }
 
-void RigidBodySimulator::updateAngularVelocity(float dt, const Vector3f& torque) {
+void	RigidBodySimulator::updateAngularVelocity(float dt, const Vector3f& torque) {
 	// Compute angular momentum: I·ω
-	const Vector3f angularMomentum = componentMultiply(inertia_, omega_);
+	const Vector3f	angularMomentum = componentMultiply(inertia_, omega_);
 
 	// Compute gyroscopic term: ω × (I·ω)
-	const Vector3f gyroscopicTerm = cross(omega_, angularMomentum);
+	const Vector3f	gyroscopicTerm = cross(omega_, angularMomentum);
 
 	// Net torque: τ - ω × (I·ω)
 	const Vector3f netTorque = torque - gyroscopicTerm;
@@ -92,21 +92,21 @@ void RigidBodySimulator::updateAngularVelocity(float dt, const Vector3f& torque)
 		&& "Error: angular velocity components must be finite after update");
 }
 
-void RigidBodySimulator::updateEulerAngles(float dt) {
-	const float epsilon	 = 1e-6f;
+void	RigidBodySimulator::updateEulerAngles(float dt) {
+	const float	epsilon = 1e-6f;
 
 	// Body angular rates (p, q, r)
-	const float p = omega_.getX();
-	const float q = omega_.getY();
-	const float r = omega_.getZ();
+	const float	p = omega_.getX();
+	const float	q = omega_.getY();
+	const float	r = omega_.getZ();
 
 	// Current Euler angles
-	const float phi	  = roll_;
-	const float theta = pitch_;
+	const float	phi = roll_;
+	const float	theta = pitch_;
 
 	// Trigonometric values
-	const float sinPhi	 = sinf(phi);
-	const float cosPhi	 = cosf(phi);
+	const float	sinPhi = sinf(phi);
+	const float	cosPhi = cosf(phi);
 	float		cosTheta = cosf(theta);
 
 	// The tangent is computed after a check on the cosine value to avoid
@@ -118,12 +118,12 @@ void RigidBodySimulator::updateEulerAngles(float dt) {
 			cosTheta = -epsilon;
 	}
 
-	const float tanTheta = sinf(theta) / cosTheta;
+	const float	tanTheta = sinf(theta) / cosTheta;
 
 	// Compute Euler angle derivatives using 3-2-1 transformation
-	const float phiDot = p + (q * sinPhi + r * cosPhi) * tanTheta;
-	const float thetaDot = q * cosPhi - r * sinPhi;
-	const float psiDot = (q * sinPhi + r * cosPhi) / cosTheta;
+	const float	phiDot = p + (q * sinPhi + r * cosPhi) * tanTheta;
+	const float	thetaDot = q * cosPhi - r * sinPhi;
+	const float	psiDot = (q * sinPhi + r * cosPhi) / cosTheta;
 
 	// Integrate Euler angles
 	roll_ += phiDot * dt;
@@ -146,8 +146,8 @@ void	RigidBodySimulator::computeInverseInertia() {
 }
 
 void	RigidBodySimulator::normalizeAngles() {
-	const float PI = 3.14159265359f;
-	const float TWO_PI = 2.0f * PI;
+	const float	PI = 3.14159265359f;
+	const float	TWO_PI = 2.0f * PI;
 
 	// [-π, π] range
 	while (pitch_ > PI)
@@ -166,7 +166,7 @@ void	RigidBodySimulator::normalizeAngles() {
 		roll_ += TWO_PI;
 }
 
-bool RigidBodySimulator::checkNumerics() const {
+bool	RigidBodySimulator::checkNumerics() const {
 	if (std::isnan(pitch_) || std::isinf(pitch_) || std::isnan(yaw_)
 		|| std::isinf(yaw_) || std::isnan(roll_) || std::isinf(roll_)
 		|| std::isnan(dt_) || std::isinf(dt_) || dt_ < 0.0f

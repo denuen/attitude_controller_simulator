@@ -18,9 +18,9 @@ class PIDController {
 		PIDController();
 
 		/* Constructs a PID Controller with specified gains (contained in a Vector3f) for each axis
-		   x component stands for kp;
-		   y component stands for ki;
-		   z component stands for kd;	
+			x component stands for kp;
+			y component stands for ki;
+			z component stands for kd;
 		*/
 		PIDController(const Vector3f& pitchG, const Vector3f& yawG, const Vector3f& rollG);
 
@@ -32,7 +32,7 @@ class PIDController {
 
 		// Copy assignment operator
 		PIDController&	operator=(const PIDController& p);
-	
+
 		// Returns the PID Controller config for pitch axis
 		inline PID	getPitch() const { return (pitch_); }
 
@@ -59,7 +59,7 @@ class PIDController {
 
 		// Sets the anti-windup time constant for all the axes
 		void		setAntiWindup(float tau);
-		
+
 		// Computes three-axis torque vector based on attitude setpoint and current measurement
 		Vector3f	compute(Vector3f& setpoint, Vector3f& measure, float dt);
 

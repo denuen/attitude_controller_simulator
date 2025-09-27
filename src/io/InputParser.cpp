@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <iostream>
 
 InputParser::InputParser(void) :
 kp_(), ki_(), kd_(), inertia_(), driftRate_(),

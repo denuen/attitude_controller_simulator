@@ -1,6 +1,7 @@
 #include "../../includes/control/PIDController.hpp"
 #include <cassert>
 #include <iostream>
+#include <cmath>
 
 PIDController::PIDController() :
 pitch_(), yaw_(), roll_() {

@@ -1,7 +1,8 @@
-#include <iostream>
+#include "../includes/io/InputParser.hpp"
+#include "../includes/manager/ErrorCodes.hpp"
 #include <cassert>
 #include <cmath>
-#include "../includes/io/InputParser.hpp"
+#include <iostream>
 
 #define FLOAT_EQ(a, b) (std::fabs((a) - (b)) < 1e-6f)
 
@@ -26,70 +27,71 @@ void test_valid_txt() {
 	assert(FLOAT_EQ(parser.getActuatorDelay(), 0.02f));
 
 	// Setpoints
-	Vector3f s0 = parser.getSetpointAt(0.0f);
-	Vector3f s1 = parser.getSetpointAt(5.0f);
-	Vector3f s2 = parser.getSetpointAt(10.0f);
-	Vector3f s3 = parser.getSetpointAt(15.0f);
+	Vector3f s0	  = parser.getSetpointAt(0.0f);
+	Vector3f s1	  = parser.getSetpointAt(5.0f);
+	Vector3f s2	  = parser.getSetpointAt(10.0f);
+	Vector3f s3	  = parser.getSetpointAt(15.0f);
 	Vector3f sMid = parser.getSetpointAt(7.5f);
 
-	assert(FLOAT_EQ(s0.getX(), 0.0f)); // Roll
-	assert(FLOAT_EQ(s1.getX(), 10.0f)); // Roll
-	assert(FLOAT_EQ(s2.getY(), 5.0f)); // Pitch
+	assert(FLOAT_EQ(s0.getX(), 0.0f));	  // Roll
+	assert(FLOAT_EQ(s1.getX(), 10.0f));	  // Roll
+	assert(FLOAT_EQ(s2.getY(), 5.0f));	  // Pitch
 	assert(FLOAT_EQ(sMid.getX(), 10.0f)); // Roll
-	assert(FLOAT_EQ(s3.getZ(), 15.0f)); // Yaw
+	assert(FLOAT_EQ(s3.getZ(), 15.0f));	  // Yaw
 
 	std::cout << "[OK] test_missing_setpoint_components" << std::endl;
-
 }
 
 void test_xml_bad_setpoints() {
 
-	try {
-		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_bad_setpoints.xml");
-		assert(false && "Error: Expected assertion for non-monotonic XML setpoints");
-	} catch (...) {
-		std::cout << "[OK] test_xml_bad_setpoints" << std::endl;
-	}
+	InputParser parser;
+	ErrorCode	result = parser.loadConfigFileSafe(
+		  "tests/io/templates/config_bad_setpoints.xml");
 
+	assert(result != ERR_SUCCESS
+		   && "Error: Expected error for non-monotonic XML setpoints");
+	// Use result to avoid unused variable warning
+	(void)result;
+	std::cout << "[OK] test_xml_bad_setpoints" << std::endl;
 }
 
 void test_xml_missing_fields() {
 
-	try {
-		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_missing_fields.xml");
-		assert(false && "Error: Expected assertion for missing XML fields");
-	} catch (...) {
-		std::cout << "[OK] test_xml_missing_fields" << std::endl;
-	}
+	InputParser parser;
+	ErrorCode	result = parser.loadConfigFileSafe(
+		  "tests/io/templates/config_missing_fields.xml");
 
+	assert(result != ERR_SUCCESS
+		   && "Error: Expected error for missing XML fields");
+	// Use result to avoid unused variable warning
+	(void)result;
+	std::cout << "[OK] test_xml_missing_fields" << std::endl;
 }
 
 void test_xml_malformed() {
 
-	try {
-		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_malformed.xml");
-		assert(false && "Error: Expected assertion for malformed XML");
-	} catch (...) {
-		std::cout << "[OK] test_xml_malformed" << std::endl;
-	}
+	InputParser parser;
+	ErrorCode	result =
+		parser.loadConfigFileSafe("tests/io/templates/config_malformed.xml");
 
+	assert(result != ERR_SUCCESS && "Error: Expected error for malformed XML");
+	// Use result to avoid unused variable warning
+	(void)result;
+	std::cout << "[OK] test_xml_malformed" << std::endl;
 }
 
 void test_xml_bad_structure() {
 
-	try {
-		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_bad_structure.xml");
-		assert(false && "Error: Expected assertion for bad XML structure");
-	} catch (...) {
-		std::cout << "[OK] test_xml_bad_structure" << std::endl;
-	}
+	InputParser parser;
+	ErrorCode	result = parser.loadConfigFileSafe(
+		  "tests/io/templates/config_bad_structure.xml");
 
+	assert(result != ERR_SUCCESS
+		   && "Error: Expected error for bad XML structure");
+	// Use result to avoid unused variable warning
+	(void)result;
+	std::cout << "[OK] test_xml_bad_structure" << std::endl;
 }
-
 
 void test_getters() {
 
@@ -97,13 +99,19 @@ void test_getters() {
 	parser.loadConfigFile("tests/io/templates/config_template.txt");
 
 	// Test all getters
-	Vector3f kp = parser.getKp();
-	Vector3f ki = parser.getKi();
-	Vector3f kd = parser.getKd();
-	Vector3f inertia = parser.getInertia();
-	Vector3f driftRate = parser.getDriftRate();
-	Vector3f noiseStdDev = parser.getNoiseStdDev();
-	float delay = parser.getActuatorDelay();
+	Vector3f kp						= parser.getKp();
+	Vector3f ki						= parser.getKi();
+	Vector3f kd						= parser.getKd();
+	Vector3f inertia				= parser.getInertia();
+	Vector3f driftRate				= parser.getDriftRate();
+	Vector3f noiseStdDev			= parser.getNoiseStdDev();
+	float	 delay					= parser.getActuatorDelay();
+	Vector3f maxTorquePerAxis		= parser.getMaxTorquePerAxis();
+	float	 maxTorqueMagnitude		= parser.getMaxTorqueMagnitude();
+	float	 controllerSmoothing	= parser.getControllerSmoothing();
+	float	 controllerAntiWindup	= parser.getControllerAntiWindup();
+	Vector3f initialAttitude		= parser.getInitialAttitude();
+	Vector3f initialAngularVelocity = parser.getInitialAngularVelocity();
 
 	assert(FLOAT_EQ(kp.getX(), 2.5f));
 	assert(FLOAT_EQ(ki.getY(), 0.05f));
@@ -113,8 +121,27 @@ void test_getters() {
 	assert(FLOAT_EQ(noiseStdDev.getY(), 0.015f));
 	assert(FLOAT_EQ(delay, 0.02f));
 
-	std::cout << "[OK] test_getters" << std::endl;
+	// Test new parameters
+	assert(FLOAT_EQ(maxTorquePerAxis.getX(), 5.0f));
+	assert(FLOAT_EQ(maxTorquePerAxis.getY(), 5.0f));
+	assert(FLOAT_EQ(maxTorquePerAxis.getZ(), 6.0f));
+	assert(FLOAT_EQ(maxTorqueMagnitude, 8.0f));
+	assert(FLOAT_EQ(controllerSmoothing, 0.5f));
+	assert(FLOAT_EQ(controllerAntiWindup, 0.3f));
+	assert(FLOAT_EQ(initialAttitude.getX(), 0.0f));
+	assert(FLOAT_EQ(initialAttitude.getY(), 0.0f));
+	assert(FLOAT_EQ(initialAttitude.getZ(), 0.0f));
+	assert(FLOAT_EQ(initialAngularVelocity.getX(), 0.0f));
+	assert(FLOAT_EQ(initialAngularVelocity.getY(), 0.0f));
+	assert(FLOAT_EQ(initialAngularVelocity.getZ(), 0.0f));
 
+	// Suppress unused variable warnings in release mode
+	(void)delay;
+	(void)maxTorqueMagnitude;
+	(void)controllerSmoothing;
+	(void)controllerAntiWindup;
+
+	std::cout << "[OK] test_getters" << std::endl;
 }
 
 void test_setpoint_interpolation() {
@@ -123,11 +150,11 @@ void test_setpoint_interpolation() {
 	parser.loadConfigFile("tests/io/templates/config_template.txt");
 
 	// Test edge cases and interpolation
-	Vector3f before = parser.getSetpointAt(-1.0f);	// Before first setpoint
-	Vector3f at_start = parser.getSetpointAt(0.0f);	// At first setpoint
-	Vector3f between = parser.getSetpointAt(7.5f);	// Between setpoints
-	Vector3f at_end = parser.getSetpointAt(15.0f);	// At last setpoint
-	Vector3f after = parser.getSetpointAt(20.0f);	// After last setpoint
+	Vector3f before	  = parser.getSetpointAt(-1.0f); // Before first setpoint
+	Vector3f at_start = parser.getSetpointAt(0.0f);	 // At first setpoint
+	Vector3f between  = parser.getSetpointAt(7.5f);	 // Between setpoints
+	Vector3f at_end	  = parser.getSetpointAt(15.0f); // At last setpoint
+	Vector3f after	  = parser.getSetpointAt(20.0f); // After last setpoint
 
 	// Before first setpoint should return (0,0,0)
 	assert(FLOAT_EQ(before.getX(), 0.0f));
@@ -140,7 +167,7 @@ void test_setpoint_interpolation() {
 	assert(FLOAT_EQ(at_start.getZ(), 0.0f));
 
 	// Between setpoints returns the latest passed setpoint
-	assert(FLOAT_EQ(between.getX(), 10.0f));	// From t = 5.0 setpoint
+	assert(FLOAT_EQ(between.getX(), 10.0f)); // From t = 5.0 setpoint
 	assert(FLOAT_EQ(between.getY(), 0.0f));
 	assert(FLOAT_EQ(between.getZ(), 0.0f));
 
@@ -155,7 +182,6 @@ void test_setpoint_interpolation() {
 	assert(FLOAT_EQ(after.getZ(), 15.0f));
 
 	std::cout << "[OK] test_setpoint_interpolation" << std::endl;
-
 }
 
 void test_reset_functionality() {
@@ -172,10 +198,10 @@ void test_reset_functionality() {
 
 	// Verify new data is loaded correctly
 	assert(FLOAT_EQ(parser.getKp().getX(), 2.5f));
-	assert(FLOAT_EQ(parser.getInertia().getY(), 0.038f)); // This differs between txt and xml
+	assert(FLOAT_EQ(parser.getInertia().getY(),
+					0.038f)); // This differs between txt and xml
 
 	std::cout << "[OK] test_reset_functionality" << std::endl;
-
 }
 
 void test_copy_constructor_and_assignment() {
@@ -198,10 +224,10 @@ void test_copy_constructor_and_assignment() {
 	InputParser parser3;
 	parser3 = parser1;
 	assert(FLOAT_EQ(parser3.getKi().getY(), parser1.getKi().getY()));
-	assert(FLOAT_EQ(parser3.getDriftRate().getZ(), parser1.getDriftRate().getZ()));
+	assert(
+		FLOAT_EQ(parser3.getDriftRate().getZ(), parser1.getDriftRate().getZ()));
 
 	std::cout << "[OK] test_copy_constructor_and_assignment" << std::endl;
-
 }
 
 void test_valid_xml() {
@@ -217,11 +243,48 @@ void test_valid_xml() {
 	assert(FLOAT_EQ(parser.getNoiseStdDev().getZ(), 0.025f));
 	assert(FLOAT_EQ(parser.getActuatorDelay(), 0.02f));
 
+	// Test new XML parameters
+	assert(FLOAT_EQ(parser.getMaxTorquePerAxis().getX(), 5.0f));
+	assert(FLOAT_EQ(parser.getMaxTorquePerAxis().getY(), 5.0f));
+	assert(FLOAT_EQ(parser.getMaxTorquePerAxis().getZ(), 6.0f));
+	assert(FLOAT_EQ(parser.getMaxTorqueMagnitude(), 8.0f));
+	assert(FLOAT_EQ(parser.getControllerSmoothing(), 0.5f));
+	assert(FLOAT_EQ(parser.getControllerAntiWindup(), 0.3f));
+	assert(FLOAT_EQ(parser.getInitialAttitude().getX(), 0.0f));
+	assert(FLOAT_EQ(parser.getInitialAttitude().getY(), 0.0f));
+	assert(FLOAT_EQ(parser.getInitialAttitude().getZ(), 0.0f));
+	assert(FLOAT_EQ(parser.getInitialAngularVelocity().getX(), 0.0f));
+	assert(FLOAT_EQ(parser.getInitialAngularVelocity().getY(), 0.0f));
+	assert(FLOAT_EQ(parser.getInitialAngularVelocity().getZ(), 0.0f));
+
 	Vector3f s = parser.getSetpointAt(15.0f);
 	assert(FLOAT_EQ(s.getZ(), 15.0f));
 
 	std::cout << "[OK] test_valid_xml" << std::endl;
+}
 
+void test_safe_parsing() {
+
+	InputParser parser;
+
+	// Test successful safe XML parsing
+	ErrorCode result =
+		parser.loadConfigFileSafe("tests/io/templates/config_template.xml");
+	assert(result == ERR_SUCCESS && "Safe XML parsing should succeed");
+	assert(FLOAT_EQ(parser.getKp().getX(), 2.5f));
+	assert(FLOAT_EQ(parser.getMaxTorqueMagnitude(), 8.0f));
+
+	// Test successful safe TXT parsing
+	result =
+		parser.loadConfigFileSafe("tests/io/templates/config_template.txt");
+	assert(result == ERR_SUCCESS && "Safe TXT parsing should succeed");
+	assert(FLOAT_EQ(parser.getKd().getZ(), 1.2f));
+	assert(FLOAT_EQ(parser.getControllerSmoothing(), 0.5f));
+
+	// Suppress unused variable warning in release mode
+	(void)result;
+
+	std::cout << "[OK] test_safe_parsing" << std::endl;
 }
 
 void test_non_monotonic_setpoints() {
@@ -229,11 +292,11 @@ void test_non_monotonic_setpoints() {
 	try {
 		InputParser parser;
 		parser.loadConfigFile("tests/io/config_bad_setpoints.txt");
-		assert(false && "Error: Expected assertion for non-monotonic setpoints");
+		assert(false
+			   && "Error: Expected assertion for non-monotonic setpoints");
 	} catch (...) {
 		std::cout << "[OK] test_non_monotonic_setpoints" << std::endl;
 	}
-
 }
 
 void test_missing_fields_txt() {
@@ -245,7 +308,6 @@ void test_missing_fields_txt() {
 	} catch (...) {
 		std::cout << "[OK] test_missing_fields_txt" << std::endl;
 	}
-
 }
 
 void test_invalid_extension() {
@@ -257,7 +319,6 @@ void test_invalid_extension() {
 	} catch (...) {
 		std::cout << "[OK] test_invalid_extension" << std::endl;
 	}
-
 }
 
 void test_malformed_txt_line() {
@@ -269,31 +330,32 @@ void test_malformed_txt_line() {
 	} catch (...) {
 		std::cout << "[OK] test_malformed_txt_line" << std::endl;
 	}
-
 }
 
 void test_too_many_vector_components() {
 
 	try {
 		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_too_many_components.txt");
-		assert(false && "Error: Expected assertion for too many vector components");
+		parser.loadConfigFile(
+			"tests/io/templates/config_too_many_components.txt");
+		assert(false
+			   && "Error: Expected assertion for too many vector components");
 	} catch (...) {
 		std::cout << "[OK] test_too_many_vector_components" << std::endl;
 	}
-
 }
 
 void test_bad_setpoint_components() {
 
 	try {
 		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_bad_setpoint_components.txt");
-		assert(false && "Error: Expected assertion for bad setpoint components");
+		parser.loadConfigFile(
+			"tests/io/templates/config_bad_setpoint_components.txt");
+		assert(false
+			   && "Error: Expected assertion for bad setpoint components");
 	} catch (...) {
 		std::cout << "[OK] test_bad_setpoint_components" << std::endl;
 	}
-
 }
 
 void test_bad_delay() {
@@ -305,31 +367,32 @@ void test_bad_delay() {
 	} catch (...) {
 		std::cout << "[OK] test_bad_delay" << std::endl;
 	}
-
 }
 
 void test_missing_vector_components() {
 
 	try {
 		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_missing_vector_components.txt");
-		assert(false && "Error: Expected assertion for missing vector components");
+		parser.loadConfigFile(
+			"tests/io/templates/config_missing_vector_components.txt");
+		assert(false
+			   && "Error: Expected assertion for missing vector components");
 	} catch (...) {
 		std::cout << "[OK] test_missing_vector_components" << std::endl;
 	}
-
 }
 
 void test_missing_setpoint_components() {
 
 	try {
 		InputParser parser;
-		parser.loadConfigFile("tests/io/templates/config_missing_setpoint_components.txt");
-		assert(false && "Error: Expected assertion for missing setpoint components");
+		parser.loadConfigFile(
+			"tests/io/templates/config_missing_setpoint_components.txt");
+		assert(false
+			   && "Error: Expected assertion for missing setpoint components");
 	} catch (...) {
 		std::cout << "[OK] test_missing_setpoint_components" << std::endl;
 	}
-
 }
 
 int main(void) {
@@ -340,28 +403,16 @@ int main(void) {
 	test_reset_functionality();
 	test_copy_constructor_and_assignment();
 	test_valid_xml();
+	test_safe_parsing();
 
-	// Error tests temporarily disabled - they cause aborts due to assertions
-	// These would need a different approach (e.g., fork/signal handling) to test all them in a solo executable
-
-	/*
-	// txt error tests
-	test_non_monotonic_setpoints();
-	test_missing_fields_txt();
-	test_invalid_extension();
-	test_malformed_txt_line();
-	test_too_many_vector_components();
-	test_bad_setpoint_components();
-	test_bad_delay();
-	test_missing_vector_components();
-	test_missing_setpoint_components();
-
-	// xml error tests
+	// XML error tests using Safe functions (these don't cause assertions)
 	test_xml_bad_setpoints();
 	test_xml_missing_fields();
 	test_xml_malformed();
 	test_xml_bad_structure();
-	*/
+
+	// TXT error tests still disabled - they use assertion-based error handling
+	// which would require fork/signal handling to test in a single executable
 
 	std::cout << "\nAll InputParser tests passed successfully." << std::endl;
 

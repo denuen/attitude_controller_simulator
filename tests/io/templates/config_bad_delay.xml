@@ -17,7 +17,27 @@
 
     <ActuatorProperties>
         <Delay></Delay>
+        <!-- Maximum torque per axis (Nm) -->
+        <MaxTorquePerAxis x="5.0" y="5.0" z="6.0" />
+        <!-- Maximum total torque magnitude (Nm) -->
+        <MaxTorqueMagnitude>8.0</MaxTorqueMagnitude>
     </ActuatorProperties>
+
+    <!-- Controller Parameters -->
+    <ControllerParameters>
+        <!-- Output smoothing factor (0.0-1.0) -->
+        <Smoothing>0.5</Smoothing>
+        <!-- Anti-windup factor (0.0-1.0) -->
+        <AntiWindup>0.3</AntiWindup>
+    </ControllerParameters>
+
+    <!-- Initial Conditions -->
+    <InitialConditions>
+        <!-- Initial attitude (pitch, yaw, roll in radians) -->
+        <Attitude x="0.0" y="0.0" z="0.0" />
+        <!-- Initial angular velocity (rad/s) -->
+        <AngularVelocity x="0.0" y="0.0" z="0.0" />
+    </InitialConditions>
 
     <SetpointSequence>
         <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />

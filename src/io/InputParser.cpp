@@ -324,6 +324,163 @@ bool	InputParser::checkNumerics() const {
 	return (true);
 }
 
+ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
+	std::ifstream	input;
+	TiXmlDocument	xmlDocument(filename.c_str());
+
+	if (!xmlDocument.LoadFile()) {
+		return (ERR_CNF_FILE_NOT_FOUND);
+	}
+
+	TiXmlElement*	root = xmlDocument.FirstChildElement("AttitudeControllerConfig");
+	if (!root) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
+
+	TiXmlElement*	tmp = root->FirstChildElement("ControllerGains");
+	if (!tmp) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	reset();
+
+	// Parse ControllerGains
+	if (!tmp->FirstChildElement("Kp") || !tmp->FirstChildElement("Ki") || !tmp->FirstChildElement("Kd")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseVector3f(tmp->FirstChildElement("Kp"), kp_);
+	parseVector3f(tmp->FirstChildElement("Ki"), ki_);
+	parseVector3f(tmp->FirstChildElement("Kd"), kd_);
+
+	// Parse PhysicalProperties
+	tmp = root->FirstChildElement("PhysicalProperties");
+	if (!tmp || !tmp->FirstChildElement("Inertia")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseVector3f(tmp->FirstChildElement("Inertia"), inertia_);
+
+	// Parse SensorCharacteristics
+	tmp = root->FirstChildElement("SensorCharacteristics");
+	if (!tmp || !tmp->FirstChildElement("DriftRate") || !tmp->FirstChildElement("NoiseStdDev")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseVector3f(tmp->FirstChildElement("DriftRate"), driftRate_);
+	parseVector3f(tmp->FirstChildElement("NoiseStdDev"), noiseStdDev_);
+
+	// Parse ActuatorProperties
+	tmp = root->FirstChildElement("ActuatorProperties");
+	if (!tmp || !tmp->FirstChildElement("Delay")) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	parseFloat(tmp->FirstChildElement("Delay"), actuatorDelay_);
+
+	// Parse SetpointSequence
+	tmp = root->FirstChildElement("SetpointSequence");
+	if (!tmp) {
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+
+	for (TiXmlElement*	setpoint = tmp->FirstChildElement("Setpoint");
+		 setpoint != NULL; setpoint = setpoint->NextSiblingElement("Setpoint")) {
+		parseSetpointLine(setpoint);
+	}
+
+	// Validate loaded data
+	if (!checkNumerics()) {
+		return (ERR_CNF_OUT_OF_RANGE);
+	}
+
+	return (ERR_SUCCESS);
+}
+
+ErrorCode	InputParser::loadConfigFromTXTSafe(const std::string& filename) {
+	std::ifstream	input(filename.c_str());
+	std::string		line;
+
+	if (!input.is_open()) {
+		return (ERR_CNF_FILE_NOT_FOUND);
+	}
+
+	reset();
+
+	// Parse kp_, ki_, kd_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, kp_);
+
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, ki_);
+
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, kd_);
+
+	// Parse inertia_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, inertia_);
+
+	// Parse driftRate_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, driftRate_);
+
+	// Parse noiseStdDev_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseVector3f(line, noiseStdDev_);
+
+	// Parse actuatorDelay_
+	if (!std::getline(input, line)) {
+		input.close();
+		return (ERR_CNF_MISSING_PARAMETER);
+	}
+	parseFloat(line, actuatorDelay_);
+
+	// Parse setpoints
+	while (std::getline(input, line)) {
+		parseSetpointLine(line);
+	}
+
+	input.close();
+
+	// Validate loaded data
+	if (!checkNumerics()) {
+		return (ERR_CNF_OUT_OF_RANGE);
+	}
+
+	return (ERR_SUCCESS);
+}
+
+ErrorCode	InputParser::loadConfigFileSafe(const std::string& filename) {
+	std::string	ext = filename.substr(filename.find_last_of('.') + 1);
+
+	if (ext == "txt") {
+		return (loadConfigFromTXTSafe(filename));
+	} else if (ext == "xml") {
+		return (loadConfigFromXMLSafe(filename));
+	} else {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
+}
+
 InputParser::~InputParser(void) {
 
 }

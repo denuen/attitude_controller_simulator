@@ -20,8 +20,8 @@ Best Case Configuration for Attitude Controller Simulator
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- Very low drift rate for high-quality sensors -->
-        <DriftRate x="0.000005" y="0.000005" z="0.000005" />
+        <!-- Zero drift rate for ideal sensors (perfect behavior) -->
+        <DriftRate x="0.0" y="0.0" z="0.0" />
         <!-- Very low noise standard deviation -->
         <NoiseStdDev x="0.0008" y="0.0008" z="0.0008" />
     </SensorCharacteristics>

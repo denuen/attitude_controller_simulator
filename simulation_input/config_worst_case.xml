@@ -9,10 +9,10 @@ Worst Case Configuration for Attitude Controller Simulator
 -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ControllerGains>
-        <!-- Pitch=x, Roll=y, Yaw=z - Lower gains to prevent instability -->
-        <Kp x="2.5" y="2.2" z="2.0" />
-        <Ki x="0.2" y="0.18" z="0.15" />
-        <Kd x="1.0" y="0.9" z="0.8" />
+        <!-- Pitch=x, Roll=y, Yaw=z  -->
+        <Kp x="4.0" y="3.5" z="3.0" />
+        <Ki x="0.3" y="0.25" z="0.2" />
+        <Kd x="1.5" y="1.3" z="1.2" />
     </ControllerGains>
 
     <PhysicalProperties>
@@ -21,19 +21,19 @@ Worst Case Configuration for Attitude Controller Simulator
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- High drift rate for degraded sensors -->
-        <DriftRate x="0.0001" y="0.0001" z="0.0001" />
+        <!-- Significant drift rate -->
+        <DriftRate x="0.00005" y="0.00005" z="0.00005" />
         <!-- High noise standard deviation -->
-        <NoiseStdDev x="0.015" y="0.015" z="0.015" />
+        <NoiseStdDev x="0.008" y="0.008" z="0.008" />
     </SensorCharacteristics>
 
     <ActuatorProperties>
-        <!-- Slow, sluggish response (80ms delay) -->
-        <Delay>0.08</Delay>
-        <!-- Limited torque capabilities (Nm) -->
-        <MaxTorquePerAxis x="2.5" y="2.5" z="3.0" />
-        <!-- Low maximum total torque magnitude (Nm) -->
-        <MaxTorqueMagnitude>4.0</MaxTorqueMagnitude>
+        <!-- Significant delay (50ms) -->
+        <Delay>0.05</Delay>
+        <!-- torque capabilities (Nm) -->
+        <MaxTorquePerAxis x="4.0" y="4.0" z="4.5" />
+        <!-- Limited maximum total torque magnitude (Nm) -->
+        <MaxTorqueMagnitude>6.0</MaxTorqueMagnitude>
     </ActuatorProperties>
 
     <ControllerParameters>
@@ -54,25 +54,25 @@ Worst Case Configuration for Attitude Controller Simulator
         <!-- Time=0s: Start at origin -->
         <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
 
-        <!-- Time=4s: Sharp pitch maneuver -->
-        <Setpoint time="4.0" roll="0.0" pitch="0.87" yaw="0.0" />
+        <!-- Time=6s -->
+        <Setpoint time="6.0" roll="0.0" pitch="0.52" yaw="0.0" />
 
-        <!-- Time=8s: Add rapid yaw -->
-        <Setpoint time="8.0" roll="0.0" pitch="0.87" yaw="0.70" />
+        <!-- Time=12s: controlled yaw -->
+        <Setpoint time="12.0" roll="0.0" pitch="0.52" yaw="0.44" />
 
-        <!-- Time=12s: Full 3-axis maneuver -->
-        <Setpoint time="12.0" roll="0.61" pitch="0.87" yaw="0.70" />
+        <!-- Time=18s: Multi-axis maneuver -->
+        <Setpoint time="18.0" roll="0.35" pitch="0.52" yaw="0.44" />
 
-        <!-- Time=16s: Reverse direction rapidly -->
-        <Setpoint time="16.0" roll="0.61" pitch="-0.52" yaw="0.70" />
+        <!-- Time=24s: Direction change -->
+        <Setpoint time="24.0" roll="0.35" pitch="-0.35" yaw="0.44" />
 
-        <!-- Time=20s: Another sharp change -->
-        <Setpoint time="20.0" roll="0.61" pitch="-0.52" yaw="-0.44" />
+        <!-- Time=30s: Another change -->
+        <Setpoint time="30.0" roll="0.35" pitch="-0.35" yaw="-0.26" />
 
-        <!-- Time=24s: Final aggressive move -->
-        <Setpoint time="24.0" roll="-0.79" pitch="-0.52" yaw="-0.44" />
+        <!-- Time=36s: Final challenging move -->
+        <Setpoint time="36.0" roll="-0.44" pitch="-0.35" yaw="-0.26" />
 
-        <!-- Time=30s: Return to origin (long settling time needed) -->
-        <Setpoint time="30.0" roll="0.0" pitch="0.0" yaw="0.0" />
+        <!-- Time=45s: Return to origin (extended settling time) -->
+        <Setpoint time="45.0" roll="0.0" pitch="0.0" yaw="0.0" />
     </SetpointSequence>
 </AttitudeControllerConfig>

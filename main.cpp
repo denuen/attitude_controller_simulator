@@ -101,11 +101,9 @@ int main(int argc, char* argv[]) {
 
 void	printUsage(const char* programName) {
 	std::cout << "\n=== Attitude Controller Simulator ===" << std::endl;
-	std::cout << "Usage: " << programName
-			<< " [config_file] [duration] [timestep]" << std::endl;
+	std::cout << "Usage: " << programName << " [config_file] [duration] [timestep]" << std::endl;
 	std::cout << "\nParameters:" << std::endl;
-	std::cout << "  config_file - XML configuration file (required)"
-			<< std::endl;
+	std::cout << "  config_file - XML configuration file (required)" << std::endl;
 	std::cout
 		<< "                If a filename without path is provided, the file"
 		<< " will be searched for in the simulation_input/ directory"
@@ -158,9 +156,9 @@ void printSimulationSummary(const SimulationManager& simManager, float actualDur
 }
 
 void	handleSimulationError(ErrorCode error) {
-	std::cerr << "\n" << std::string(60, '!') << std::endl;
-	std::cerr << "SIMULATION ERROR OCCURRED" << std::endl;
-	std::cerr << std::string(60, '!') << std::endl;
+	std::cerr << "\n" << std::string(60, '=') << std::endl;
+	std::cerr << "[ERROR] SIMULATION FAILURE - CODE " << static_cast<int>(error) << std::endl;
+	std::cerr << std::string(60, '=') << std::endl;
 
 	switch (error) {
 	case ERR_SUCCESS:
@@ -189,11 +187,11 @@ void	handleSimulationError(ErrorCode error) {
 		std::cerr << "Check PID gains and system stability" << std::endl;
 		break;
 	default:
-		std::cerr << "Error: Unknown error code " << static_cast<int>(error) << std::endl;
+		std::cerr << "Error: Unrecognized error code " << static_cast<int>(error) << std::endl;
 		break;
 	}
 
-	std::cerr << std::string(60, '!') << std::endl;
+	std::cerr << std::string(60, '=') << std::endl;
 }
 
 bool parseArguments(int argc, char* argv[], std::string& configFile, float& duration, float& timestep) {

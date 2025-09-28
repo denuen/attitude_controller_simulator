@@ -20,8 +20,8 @@ Normal Case Configuration for Attitude Controller Simulator
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- Typical drift rate for commercial sensors -->
-        <DriftRate x="0.00005" y="0.00005" z="0.00005" />
+        <!-- Zero drift rate for clean behavior (ideal sensors) -->
+        <DriftRate x="0.0" y="0.0" z="0.0" />
         <!-- Standard noise level -->
         <NoiseStdDev x="0.003" y="0.003" z="0.003" />
     </SensorCharacteristics>

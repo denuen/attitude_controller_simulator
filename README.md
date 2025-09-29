@@ -1,149 +1,206 @@
 # Attitude Controller Simulator
 
-A modular and extensible C++98 framework for simulating closed-loop 3D attitude control of rigid bodies, this project is designed to provide a deterministic execution environment for the development, numerical validation, and benchmarking of control algorithms under realistic physical and sensor constraints. Emphasizing MISRA C++:2008 coding standards for reliability and safety, the simulator features a strict modular architecture that facilitates independent testing and integration of physics, control, sensor, and actuator models. Its design supports repeatable, traceable simulation runs, enabling rigorous verification of control strategies and system behaviors. The framework is particularly suited for educational purposes and rapid prototyping, offering a robust platform for exploring flight dynamics, validating PID tuning, and investigating closed-loop control in a controlled, single-threaded context.
+A C++98 framework for simulating closed-loop 3D attitude control of rigid bodies. The project provides a deterministic execution environment for control algorithm development and validation under realistic physical and sensor constraints. The simulator follows MISRA C++:2008 coding standards and features a modular architecture that separates physics, control, sensor, and actuator models for independent testing and integration.
+
+**Note:**
+Modules such as `GaussianNoise` and `SensorSimulator` introduce stochastic elements (Gaussian noise, sensor drift), making simulation results non-deterministic unless the random number generator seed is fixed. Deterministic modules such as `ActuatorDriver`, `RigidBodySimulator`, and control algorithms always produce repeatable results given identical inputs.
 
 ## Overview
 
-The simulator implements a modular closed-loop system:
+The simulator implements a closed-loop control system with the following components:
 
-- **Rigid Body Physics**: Euler rotational dynamics with gyroscopic effects.
-- **Control System**: 3-axis PID controllers with anti-windup and derivative filtering.
-- **Sensor Simulation**: IMU-style measurements with deterministic drift and Gaussian noise.
-- **Actuator Dynamics**: FIFO command buffering with configurable delays.
-- **Input Parsing**: TXT and XML configuration loading.
-- **Simulation Management**: Orchestrates modules, enforces safety limits, and logs simulation time.
+- **Rigid Body Physics**: Euler angle rotational dynamics implementation in `RigidBodySimulator`
+- **Control System**: Multi-axis PID controllers with individual axis tuning (`PID`, `PIDController`)
+- **Sensor Simulation**: IMU measurements with configurable drift and Gaussian noise (`SensorSimulator`, `GaussianNoise`)
+- **Actuator Dynamics**: Command buffering with configurable delays and torque limits (`ActuatorDriver`)
+- **Input Parsing**: XML (txt for testing) configuration file loading and validation (`InputParser`)
+- **Simulation Management**: Orchestrates all modules, enforces safety limits, and exports CSV logs (`SimulationManager`)
+- **Visualization System**: Python-based data analysis and 3D visualization package (**IN PROGRESS**)
 
-## Project Structure (in development)
+## Project Structure
 
-The directory layout below summarizes the modular organization of the simulator. This structure is actively evolving as new features and modules are added. Expect additional folders and files as the project expands to support input parsing, simulation management, and advanced logging.
-
-
-```
-attitude_controller_simulator
-|
-├── docs
-│   ├── control                                    # API references for control modules
-│   ├── io                                         # API references for input/output modules
-│   ├── manager                                    # API references for manager modules
-│   ├── MISRA
-│   │   ├── MISRA_CPP-2008_RULES_COMPLIANCE.csv    # List of MISRA rules and their compliance status for this project
-│   │   └── MISRA_CPP-2008_RULES_COMPLIANCE.md     # Documentation of project compliance with MISRA C++:2008 rules
-│   ├── physics                                    # API references for physics simulation modules (e.g., rigid body, vectors)
-│   └── sensor                                     # API references for sensor modeling modules
-|
-├── includes
-|   |
-│   ├── control                                     # Control system headers (PID, controllers, actuators)
-│   │   ├── ActuatorDriver.hpp                          # Actuator command buffering and delay simulation
-│   │   ├── PID.hpp                                     # Single-axis PID controller logic
-│   │   └── PIDController.hpp                           # Multi-axis PID controller
-|   |
-│   ├── io                                          # Input/output module
-│   │   └── InputParser.hpp                             # Simulation configuration parser
-|   |
-│   ├── manager                                     # Simulation management and error handling
-│   │   ├── ErrorCodes.hpp                              # Error codes and status enums
-│   │   └── SimulationManager.hpp                       # Simulation loop and coordination logic
-|   |
-│   ├── physics                                     # Physics engine
-│   │   ├── RigidBodySimulator.hpp                      # Rigid body dynamics simulation
-│   │   └── Vector3f.hpp                                # 3D vector math utilities
-|   |
-│   └── sensor                                      # Sensor simulation headers
-│       ├── GaussianNoise.hpp                           # Gaussian noise generation (sensor noise)
-│       └── SensorSimulator.hpp                         # IMU and sensor modeling
-|
-├── src
-│   ├── control
+```text
+attitude_controller_simulator/
+│
+├── main.cpp                                       # Main application entry point
+├── Makefile                                       # Build system for C++ components
+├── requirements.txt                               # Python dependencies
+│
+├── includes/                                      # C++ header files
+│   ├── control/
+│   │   ├── ActuatorDriver.hpp                     # Actuator delay and torque limiting
+│   │   ├── PID.hpp                                # Single-axis PID controller
+│   │   └── PIDController.hpp                      # Multi-axis PID coordination
+│   ├── io/
+│   │   └── InputParser.hpp                        # XML configuration parsing
+│   ├── manager/
+│   │   ├── ErrorCodes.hpp                         # Error code definitions
+│   │   └── SimulationManager.hpp                  # Main simulation orchestration
+│   ├── physics/
+│   │   ├── RigidBodySimulator.hpp                 # Euler angle dynamics
+│   │   └── Vector3f.hpp                           # 3D vector mathematics
+│   └── sensor/
+│       ├── GaussianNoise.hpp                      # Random noise generation
+│       └── SensorSimulator.hpp                    # IMU simulation with drift
+│
+├── src/                                           # C++ implementation files
+│   ├── control/
 │   │   ├── ActuatorDriver.cpp
 │   │   ├── PID.cpp
 │   │   └── PIDController.cpp
-│   ├── io
+│   ├── io/
 │   │   └── InputParser.cpp
-│   ├── manager
+│   ├── manager/
 │   │   ├── ErrorCodes.cpp
 │   │   └── SimulationManager.cpp
-│   ├── physics
+│   ├── physics/
 │   │   ├── RigidBodySimulator.cpp
 │   │   └── Vector3f.cpp
-│   └── sensor
+│   └── sensor/
 │       ├── GaussianNoise.cpp
 │       └── SensorSimulator.cpp
-|
-├── tests
-|    ├── control
-|    │   └── test_pid_controller.cpp                 # Custom tester for PID only
-|    ├── gtest
-|    │   └── test_gtest.cpp                          # Comprehensive integration and unit tests using Google Test framework
-|    ├── io
-|    │   ├── templates                               # XML and txt templates for good/bad configurations (test utility)
-|    │   └── test_input_parser.cpp                   # Custom tester for InputParser only
-|    └── test_pid_rbs_vec3f.cpp                      # Custom tester for PID, PIDController, RigidBodySimulator, Vector3f
-|
-|
-├── LICENSE
-├── Makefile
-└── README.md
+│
+├── visualization/                                 # Python visualization package
+│   ├── __init__.py                                # Package initialization
+│   ├── __main__.py                                # Module entry point
+│   ├── AttitudeAnalysisApplication.py             # Main application interface
+│   ├── AttitudeVisualizer.py                      # Core visualization engine
+│   ├── SimulationDataLoader.py                    # Data loading and validation
+│   ├── AttitudeMathUtils.py                       # Mathematical utilities
+│   ├── RigidBodyGeometry.py                       # 3D geometry representation
+│   └── VisualizationConfig.py                     # Configuration and enums
+│
+├── simulation_input/                              # Configuration files
+│   ├── config_best_case.xml                       # Optimal conditions
+│   ├── config_normal_case.xml                     # Standard conditions
+│   └── config_worst_case.xml                      # Challenging conditions
+│
+├── simulation_output/                             # Generated data files
+│
+├── tests/                                         # Test suites
+│   ├── control/
+│   │   └── test_pid_controller.cpp
+│   ├── gtest/
+│   │   └── test_gtest.cpp                         # Google Test framework tests
+│   ├── io/
+│   │   ├── test_input_parser.cpp
+│   │   └── templates/                             # Test configuration files
+│   ├── manager/
+│   │   └── test_simulation_manager.cpp
+│   └── test_pid_rbs_vec3f.cpp                     # Core module integration tests
+│
+└── docs/                                          # API documentation (deprecated)
+    ├── control/
+    ├── physics/
+    ├── sensor/
+    ├── io/
+    └── manager/
 ```
 
-## Build and Test
+## Build and Usage
+
+### C++ Simulator
 
 ```bash
-# Build all test executables (default)
-make all
+# Build main simulator application
+make
 
-# Build and run core module tests
-make test_pid_rbs_vec3f
-make test_pid_controller
+# Build all test executables
+make all-tests
 
-# Build and run InputParser tests
-make test_input_parser
+# Build specific test executables
+make test_pid_rbs_vec3f          # Core module tests
+make test_pid_controller         # PID controller tests
+make test_input_parser           # Configuration parser tests
+make test_simulation_manager     # Simulation manager tests
+make test_gtest                  # Google Test suite (requires C++17)
 
-# Build and run Google Test suite (requires C++17)
-make test_gtest
+# Clean builds
+make clean                       # Remove object files
+make fclean                      # Remove object files and executables
+make re                          # Clean and rebuild
 
-# Clean object files
-make clean
+# Release build with optimizations and runtime error handling (no assert)
+make RELEASE=1
 
-# Clean object files and executables
-make fclean
-
-# Clean and rebuild all targets
-make re
-
-# Release build (optimizations, disables asserts)
-make release TARGET=<target_name>
-
-# Show all available targets and usage
-make help
+# Run simulation
+./attitude_simulator config_file.xml [duration] [timestep]
+./attitude_simulator config_best_case.xml 10.0 0.01
 ```
 
-## Use Cases
+### Python Visualization (**IN PROGRESS**)
 
-- **Flight Dynamics Education**: Learn and validate control theory with realistic physics.
-- **Algorithm Development**: PID tuning and closed-loop control strategy testing.
-- **Robustness Analysis**: Monte Carlo simulations with sensor noise and drift.
-- **Simulation Management**: Test and log full system behavior in deterministic loops.
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
 
-## Architecture
+# Run visualization package
+python -m visualization
+```
 
-The system follows a clean data-flow architecture:
+## Core Features
 
-**Configuration → Sensor Reading → Control Computation → Actuation → Physics Update**
+### C++ Simulation Engine
 
-Each module exposes a strict interface and is independently testable. The project includes both custom test suites for each module and unit testing suite based on Google Test, ensuring correctness and robustness across the entire system.
+- **Euler Angle Dynamics**: 3D rotational physics with gyroscopic effects
+- **PID Control**: Configurable proportional-integral-derivative controllers per axis
+- **Sensor Models**: IMU simulation with drift accumulation and Gaussian noise
+- **Actuator Delays**: Command buffering with configurable time delays
+- **XML Configuration**: Flexible parameter definition for different test cases
+- **CSV Export**: Simulation data logging for analysis and visualization
 
-## Documentation
+### Python Visualization Package (**IN PROGRESS**)
 
-- [API Reference](docs)
-- [Test Suites](tests)
+- **Interactive Menu**: Command-line interface for visualization selection
+- **Static Plots**: Multi-orientation rigid body visualization
+- **3D Animation**: Real-time attitude evolution with telemetry overlay
+- **Trajectory Analysis**: 3D attitude path visualization in Euler angle space
+- **Data Validation**: Robust CSV parsing with error handling
 
-## Compliance
+## System Architecture
 
-- **C++98**: No modern C++ features used.
-- **MISRA C++:2008**: Safety-critical coding standards.
-- **Deterministic Execution**: Single-threaded, fixed time-step. A multi-threaded approach could be introduced in a future version of the project, possibly using C++11 or later.
-- **Assertions**: Validate all inputs and variables before, during, and after operations.
+The simulator follows a modular data-flow architecture:
+
+```text
+XML Config → SimulationManager → [RigidBodySimulator ← ActuatorDriver ← PIDController ← SensorSimulator]
+                ↓
+          CSV Export → Python Visualization
+```
+
+Each C++ module has independent test coverage through custom test suites and Google Test framework integration, following an iterative/incremental V-model development process.
+
+## Configuration Files
+
+The simulator includes three predefined test scenarios:
+
+- **`config_best_case.xml`**: Optimal conditions with zero sensor drift and low noise
+- **`config_normal_case.xml`**: Standard operating conditions with typical sensor characteristics
+- **`config_worst_case.xml`**: Challenging conditions with high noise, sensor drift, and actuator limitations
+
+Each configuration defines:
+
+- PID controller gains (Kp, Ki, Kd) for each axis
+- Physical properties (moment of inertia)
+- Sensor characteristics (drift rate, noise standard deviation)
+- Actuator properties (delay, torque limits)
+- Initial conditions (attitude, angular velocity)
+- Setpoint sequence for attitude commands
+
+## Testing
+
+The project includes comprehensive test coverage:
+
+- **Custom Test Suites**: Individual module testing for core components
+- **Google Test Integration**: Unit and integration tests using modern C++ testing framework
+- **Configuration Validation**: Test templates for valid and invalid XML configurations
+- **Python Package Tests**: Data validation and visualization component testing (**IN PROGRESS**)
+
+## Standards Compliance
+
+- **C++98**: Maintains compatibility with legacy embedded systems
+- **MISRA C++:2008**: Follows safety-critical coding standards
+- **Single-threaded**: Deterministic execution with fixed time-step integration
+- **Assertion-based Validation**: All inputs and intermediate values are validated
 
 ## License
 

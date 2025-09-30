@@ -201,7 +201,3 @@ The project includes comprehensive test coverage:
 - **MISRA C++:2008**: Follows safety-critical coding standards
 - **Single-threaded**: Deterministic execution with fixed time-step integration
 - **Assertion-based Validation**: All inputs and intermediate values are validated
-
-## License
-
-MIT License - See [LICENSE](LICENSE) for details.

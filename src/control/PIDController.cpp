@@ -35,8 +35,8 @@ PIDController&	PIDController::operator=(const PIDController& p) {
 }
 
 void	PIDController::setPitchGains(float kp, float ki, float kd) {
-	assert(!std::isnan(kp) && !std::isinf(kp) 
-		&& !std::isnan(ki) && !std::isinf(ki) 
+	assert(!std::isnan(kp) && !std::isinf(kp)
+		&& !std::isnan(ki) && !std::isinf(ki)
 		&& !std::isnan(kd) && !std::isinf(kd)
 		&& "Error: gain values must be finite.");
 
@@ -46,8 +46,8 @@ void	PIDController::setPitchGains(float kp, float ki, float kd) {
 }
 
 void	PIDController::setYawGains(float kp, float ki, float kd) {
-	assert(!std::isnan(kp) && !std::isinf(kp) 
-		&& !std::isnan(ki) && !std::isinf(ki) 
+	assert(!std::isnan(kp) && !std::isinf(kp)
+		&& !std::isnan(ki) && !std::isinf(ki)
 		&& !std::isnan(kd) && !std::isinf(kd)
 		&& "Error: gain values must be finite.");
 
@@ -57,8 +57,8 @@ yaw_.setKp(kp);
 }
 
 void	PIDController::setRollGains(float kp, float ki, float kd) {
-	assert(!std::isnan(kp) && !std::isinf(kp) 
-		&& !std::isnan(ki) && !std::isinf(ki) 
+	assert(!std::isnan(kp) && !std::isinf(kp)
+		&& !std::isnan(ki) && !std::isinf(ki)
 		&& !std::isnan(kd) && !std::isinf(kd)
 		&& "Error: gain values must be finite.");
 
@@ -84,15 +84,15 @@ void	PIDController::setAntiWindup(float tau) {
 	yaw_.setAntiWindupTau(tau);
 	roll_.setAntiWindupTau(tau);
 }
-	
+
 Vector3f	PIDController::compute(Vector3f& setpoint, Vector3f& measure, float dt) {
 	assert(dt > 0.0f && "Error: dt must be positive");
 
 	Vector3f	torque;
 
-	torque.setX(pitch_.compute(setpoint.getX(), measure.getX(), dt));
-	torque.setY(yaw_.compute(setpoint.getY(), measure.getY(), dt));
-	torque.setZ(roll_.compute(setpoint.getZ(), measure.getZ(), dt));
+	torque.setX(roll_.compute(setpoint.getZ(), measure.getZ(), dt));
+	torque.setY(pitch_.compute(setpoint.getX(), measure.getX(), dt));
+	torque.setZ(yaw_.compute(setpoint.getY(), measure.getY(), dt));
 
 	return (torque);
 }

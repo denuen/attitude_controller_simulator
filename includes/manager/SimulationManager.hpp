@@ -64,9 +64,7 @@ class SimulationManager {
 		float							maxAttitudeRate_; // Maximum safe angular rate
 		float							controlSatLimit_; // Control saturation threshold
 
-		// It initialize the private member variables according to the InputParser
-		// execution
-		// ErrorCode initializeModules(); // Moved to public
+		// It initialize the private member variables according to the InputParser execution
 
 		ErrorCode	stepOnce();
 		ErrorCode	validateState();

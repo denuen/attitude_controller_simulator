@@ -50,8 +50,6 @@ controlSatLimit_(100.0f) {
 	}
 }
 
-
-
 ErrorCode	SimulationManager::initializeModulesFromConfig() {
 	if (currentState_ == STATE_INITIALIZED) {
 		lastError_ = ERR_SYS_INVALID_STATE;
@@ -73,13 +71,14 @@ ErrorCode	SimulationManager::initializeModulesFromConfig() {
 	}
 
 	// Initialize controller with configuration gains
+	// Configuration convention: X=pitch, Y=yaw, Z=roll
 	Vector3f	kp = config_.getKp();
 	Vector3f	ki = config_.getKi();
 	Vector3f	kd = config_.getKd();
 
-	Vector3f	pitchGains(kp.getX(), ki.getX(), kd.getX()); // P,I,D for pitch (X)
-	Vector3f	yawGains(kp.getY(), ki.getY(), kd.getY()); // P,I,D for yaw (Y)
-	Vector3f	rollGains(kp.getZ(), ki.getZ(), kd.getZ()); // P,I,D for roll (Z)
+	Vector3f	pitchGains(kp.getX(), ki.getX(), kd.getX()); // P,I,D for pitch
+	Vector3f	yawGains(kp.getY(), ki.getY(), kd.getY()); // P,I,D for yaw
+	Vector3f	rollGains(kp.getZ(), ki.getZ(), kd.getZ()); // P,I,D for roll
 
 	controller_.setAllGains(pitchGains, yawGains, rollGains);
 	controller_.setSmoothing(config_.getControllerSmoothing());
@@ -144,21 +143,15 @@ ErrorCode	SimulationManager::stepOnce() {
 	Vector3f	setpoint(0.0f, 0.0f, 0.0f);
 	Vector3f	cmd = controller_.compute(setpoint, measured, timeStep_);
 
-	// PIDcontroller_ outputs: X=pitch_torque, Y=yaw_torque, Z=roll_torque
-	// RigidBodySimulator expects: X=roll_torque, Y=pitch_torque, Z=yaw_torque
-	Vector3f	remappedCmd(cmd.getZ(), cmd.getX(), cmd.getY()); // Z→X, X→Y, Y→Z
+	// 3. Send commands to actuator_ (with delay simulation)
+	actuator_.sendCommand(cmd);
 
-	// 4. Send commands to actuator_ (with delay simulation)
-	actuator_.sendCommand(remappedCmd);
-
-	// 5. Update actuator_ (applies delayed commands to rigid body)
+	// 4. Update actuator_ (applies delayed commands to rigid body)
 	actuator_.update(timeStep_);
 
-	// 6. Update rigid body dynamics_ with applied torques
+	// 5. Update rigid body dynamics_ with applied torques
 	// The actuator_ applies torques to the dynamics_, now integrate the motion
-	Vector3f	appliedTorque =
-		actuator_.getLastAppliedTorque(); // Get actual applied torque
-	dynamics_.update(timeStep_, appliedTorque);
+	dynamics_.update(timeStep_, actuator_.getLastAppliedTorque());
 
 	// 7. Log current state
 	ErrorCode	logResult = logState();
@@ -171,7 +164,7 @@ ErrorCode	SimulationManager::stepOnce() {
 	simTime_ += timeStep_;
 	stepCount_++;
 
-	// 9. Check if simulation should end
+	// 8. Check if simulation should end
 	if (maxSimTime_ > 0.0f && simTime_ >= maxSimTime_) {
 		currentState_ = STATE_COMPLETED;
 	}
@@ -232,10 +225,11 @@ ErrorCode	SimulationManager::logState() {
 	}
 
 	// Log complete state data for accurate CSV export
-	SimulationLogEntry	entry(simTime_, dynamics_.getPitch(), dynamics_.getYaw(),
-							 dynamics_.getRoll(), dynamics_.getOmega().getX(),
-							 dynamics_.getOmega().getY(),
-							 dynamics_.getOmega().getZ());
+	SimulationLogEntry	entry(simTime_,
+							dynamics_.getPitch(), dynamics_.getYaw(), dynamics_.getRoll(),
+							dynamics_.getOmega().getX(),
+							dynamics_.getOmega().getY(),
+							dynamics_.getOmega().getZ());
 
 	logData_.push_back(entry);
 
@@ -243,7 +237,6 @@ ErrorCode	SimulationManager::logState() {
 }
 
 ErrorCode	SimulationManager::finalize() {
-	// Cleanup and final validation
 	if (currentState_ == STATE_COMPLETED || currentState_ == STATE_ERROR) {
 		// Reset all modules to clean state
 		controller_.reset();
@@ -273,7 +266,8 @@ bool	SimulationManager::isTimingValid() const {
 bool	SimulationManager::areControlLimitsRespected() const {
 	Vector3f	omega = dynamics_.getOmega();
 	float		omegaMag = std::sqrt(omega.getX() * omega.getX()
-						+ omega.getY() * omega.getY() + omega.getZ() * omega.getZ());
+									+ omega.getY() * omega.getY()
+									+ omega.getZ() * omega.getZ());
 	return (omegaMag <= maxAttitudeRate_ && !actuator_.isBufferSaturated(controlSatLimit_));
 }
 

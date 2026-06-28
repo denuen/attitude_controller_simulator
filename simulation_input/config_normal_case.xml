@@ -1,69 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Normal Case Configuration for Attitude Controller Simulator
-- Typical PID gains for realistic performance
-- Standard noise levels and disturbances
-- Commercial-grade actuators and sensors
-- Representative spacecraft conditions
+  Normal case: representative conditions (standard noise, no drift, typical
+  20 ms actuator delay), moderate mildly-asymmetric inertia, realistic mission
+  profile. Gains tuned for a balanced response (wn ~= 1.2 rad/s, zeta ~= 0.85).
 -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <!-- PID gains per axis (x=pitch, y=yaw, z=roll) -->
     <ControllerGains>
-        <!-- Pitch=x, Roll=y, Yaw=z - Moderate response -->
-        <Kp x="5.0" y="4.5" z="4.0" />
-        <Ki x="0.5" y="0.4" z="0.3" />
-        <Kd x="1.8" y="1.6" z="1.5" />
+        <Kp x="35.0" y="35.0" z="35.0" />
+        <Ki x="1.5" y="1.5" z="1.5" />
+        <Kd x="49.0" y="49.0" z="49.0" />
     </ControllerGains>
 
     <PhysicalProperties>
-        <!-- Moment of inertia (kg⋅m²) - Standard satellite -->
-        <Inertia x="150.0" y="145.0" z="155.0" />
+        <!-- Principal inertia (kg.m^2), body axes x=roll, y=pitch, z=yaw -->
+        <Inertia x="20.0" y="18.0" z="24.0" />
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- Zero drift rate for clean behavior (ideal sensors) -->
+        <!-- Drift rate (rad/s) -->
         <DriftRate x="0.0" y="0.0" z="0.0" />
-        <!-- Standard noise level -->
+        <!-- Gaussian noise std-dev per axis (rad) -->
         <NoiseStdDev x="0.003" y="0.003" z="0.003" />
     </SensorCharacteristics>
 
     <ActuatorProperties>
-        <!-- Typical response time (20ms delay) -->
+        <!-- Transport delay (s) -->
         <Delay>0.02</Delay>
-        <!-- Maximum torque per axis (Nm) -->
-        <MaxTorquePerAxis x="4.5" y="4.5" z="6.0" />
-        <!-- Maximum total torque magnitude (Nm) -->
-        <MaxTorqueMagnitude>8.0</MaxTorqueMagnitude>
+        <!-- Per-axis torque limit (Nm) -->
+        <MaxTorquePerAxis x="22.0" y="22.0" z="24.0" />
+        <!-- Global torque magnitude cap (Nm) -->
+        <MaxTorqueMagnitude>34.0</MaxTorqueMagnitude>
     </ActuatorProperties>
 
     <ControllerParameters>
-        <!-- Low-pass filter smoothing factor (0.0-1.0) -->
+        <!-- Derivative low-pass smoothing [0..1] -->
         <Smoothing>0.4</Smoothing>
-        <!-- Anti-windup factor for integral saturation -->
+        <!-- Integral anti-windup time constant (s) -->
         <AntiWindup>0.2</AntiWindup>
     </ControllerParameters>
 
     <InitialConditions>
-        <!-- Initial attitude (pitch, yaw, roll in radians) -->
+        <!-- Initial attitude (pitch, yaw, roll) in rad -->
         <Attitude x="0.06" y="-0.035" z="0.045" />
-        <!-- Initial angular velocity (rad/s) -->
+        <!-- Initial body rates (rad/s) -->
         <AngularVelocity x="0.01" y="-0.006" z="0.008" />
     </InitialConditions>
 
-    <!-- Setpoint Sequence -simulated mission profile -->
+    <!-- Setpoints over time; times strictly increasing (s), angles in rad -->
     <SetpointSequence>
-        <!-- Time=0s: Start at origin -->
-        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
-
-        <!-- Time=8s: Earth pointing maneuver -->
-        <Setpoint time="8.0" roll="0.0" pitch="0.52" yaw="0.0" />
-
-        <!-- Time=16s: Sun pointing with roll -->
-        <Setpoint time="16.0" roll="0.26" pitch="0.52" yaw="0.35" />
-
-        <!-- Time=24s: Communication attitude -->
-        <Setpoint time="24.0" roll="0.44" pitch="0.17" yaw="0.35" />
-
-        <!-- Time=30s: Return to nadir -->
-        <Setpoint time="30.0" roll="0.0" pitch="0.0" yaw="0.0" />
+        <Setpoint time="0.0"  roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- origin -->
+        <Setpoint time="8.0"  roll="0.0"  pitch="0.52" yaw="0.0"  /> <!-- earth pointing -->
+        <Setpoint time="16.0" roll="0.26" pitch="0.52" yaw="0.35" /> <!-- sun pointing with roll -->
+        <Setpoint time="24.0" roll="0.44" pitch="0.17" yaw="0.35" /> <!-- comms attitude -->
+        <Setpoint time="30.0" roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- return to nadir -->
     </SetpointSequence>
 </AttitudeControllerConfig>

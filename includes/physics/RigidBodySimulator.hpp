@@ -53,7 +53,7 @@ class RigidBodySimulator {
 	inline void			setOmega(const Vector3f& omega) { omega_ = omega; }
 
 	// Sets principal moments of inertia and recompute inverse
-	inline void			setInertia(const Vector3f& inertia);
+	void				setInertia(const Vector3f& inertia);
 
 	// Returns current pitch (rad)
 	inline float		getPitch() const { return (pitch_); }

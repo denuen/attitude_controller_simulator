@@ -1,69 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Best Case Configuration for Attitude Controller Simulator
-- Optimal PID gains for fast, stable response
-- Low noise, minimal disturbances
-- High-quality actuators with low delays
-- Ideal sensor characteristics
+  Best case: near-ideal sensors (very low noise, no drift), 5 ms actuator
+  delay, light and balanced inertia, gentle maneuvers.
+  Gains tuned for a fast, well-damped response (wn ~= 1.5 rad/s, zeta ~= 0.9).
 -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <!-- PID gains per axis (x=pitch, y=yaw, z=roll) -->
     <ControllerGains>
-        <!-- Pitch=x, Roll=y, Yaw=z - Well-tuned for fast response -->
-        <Kp x="8.0" y="7.0" z="6.0" />
-        <Ki x="0.8" y="0.6" z="0.5" />
-        <Kd x="2.5" y="2.2" z="2.0" />
+        <Kp x="36.0" y="36.0" z="36.0" />
+        <Ki x="1.0" y="1.0" z="1.0" />
+        <Kd x="43.0" y="43.0" z="43.0" />
     </ControllerGains>
 
     <PhysicalProperties>
-        <!-- Moment of inertia (kg⋅m²) - Well-balanced spacecraft -->
-        <Inertia x="120.0" y="115.0" z="125.0" />
+        <!-- Principal inertia (kg.m^2), body axes x=roll, y=pitch, z=yaw -->
+        <Inertia x="15.0" y="14.0" z="16.0" />
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- Zero drift rate for ideal sensors (perfect behavior) -->
+        <!-- Drift rate (rad/s); ideal sensors -> zero -->
         <DriftRate x="0.0" y="0.0" z="0.0" />
-        <!-- Very low noise standard deviation -->
+        <!-- Gaussian noise std-dev per axis (rad) -->
         <NoiseStdDev x="0.0008" y="0.0008" z="0.0008" />
     </SensorCharacteristics>
 
     <ActuatorProperties>
-        <!-- Very responsive (5ms delay) -->
+        <!-- Transport delay (s) -->
         <Delay>0.005</Delay>
-        <!-- High-performance torque limits (Nm) -->
-        <MaxTorquePerAxis x="6.0" y="6.0" z="8.0" />
-        <!-- High maximum total torque magnitude (Nm) -->
-        <MaxTorqueMagnitude>12.0</MaxTorqueMagnitude>
+        <!-- Per-axis torque limit (Nm) -->
+        <MaxTorquePerAxis x="24.0" y="24.0" z="26.0" />
+        <!-- Global torque magnitude cap (Nm) -->
+        <MaxTorqueMagnitude>38.0</MaxTorqueMagnitude>
     </ActuatorProperties>
 
     <ControllerParameters>
-        <!-- Higher smoothing for stability (0.0-1.0) -->
+        <!-- Derivative low-pass smoothing [0..1] -->
         <Smoothing>0.6</Smoothing>
-        <!-- Strong anti-windup for precise control -->
+        <!-- Integral anti-windup time constant (s) -->
         <AntiWindup>0.3</AntiWindup>
     </ControllerParameters>
 
     <InitialConditions>
-        <!-- Minimal initial attitude deviation (pitch, yaw, roll in radians) -->
+        <!-- Initial attitude (pitch, yaw, roll) in rad -->
         <Attitude x="0.02" y="-0.01" z="0.015" />
-        <!-- Very low initial angular velocity (rad/s) -->
+        <!-- Initial body rates (rad/s) -->
         <AngularVelocity x="0.003" y="-0.002" z="0.001" />
     </InitialConditions>
 
-    <!-- Setpoint Sequence - Moderate maneuvers -->
+    <!-- Setpoints over time; times strictly increasing (s), angles in rad -->
     <SetpointSequence>
-        <!-- Time=0s: Start at origin -->
-        <Setpoint time="0.0" roll="0.0" pitch="0.0" yaw="0.0" />
-
-        <!-- Time=5s: Moderate pitch maneuver -->
-        <Setpoint time="5.0" roll="0.0" pitch="0.35" yaw="0.0" />
-
-        <!-- Time=10s: Combined maneuver -->
-        <Setpoint time="10.0" roll="0.17" pitch="0.35" yaw="0.26" />
-
-        <!-- Time=15s: Return to level -->
-        <Setpoint time="15.0" roll="0.17" pitch="0.0" yaw="0.0" />
-
-        <!-- Time=20s: Final position -->
-        <Setpoint time="20.0" roll="0.0" pitch="0.0" yaw="0.0" />
+        <Setpoint time="0.0"  roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- origin -->
+        <Setpoint time="5.0"  roll="0.0"  pitch="0.35" yaw="0.0"  /> <!-- pitch up -->
+        <Setpoint time="10.0" roll="0.17" pitch="0.35" yaw="0.26" /> <!-- add roll + yaw -->
+        <Setpoint time="15.0" roll="0.17" pitch="0.0"  yaw="0.0"  /> <!-- pitch/yaw back to level -->
+        <Setpoint time="20.0" roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- return to origin -->
     </SetpointSequence>
 </AttitudeControllerConfig>

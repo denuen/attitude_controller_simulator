@@ -47,6 +47,12 @@ class InputParser {
 		// Parses setpoint entry from XML element
 		void	parseSetpointLine(TiXmlElement* element);
 
+		// Return false (instead of asserting) when the text is missing, empty or not a full float
+		static bool	parseFloatStrict(const char* text, float& out);
+
+		// Returns false when the element is null or any x/y/z attribute is missing or not a valid float
+		static bool	parseVector3fStrict(TiXmlElement* element, Vector3f& out);
+
 	public:
 		// Default constructor (sets all to zero)
 		InputParser();

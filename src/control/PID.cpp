@@ -11,13 +11,13 @@ const float	PID::DEFAULT_OUTPUT_MIN = -1000.0f;
 
 PID::PID() :
 kp_(0.0f), ki_(0.0f), kd_(0.0f), integral_(0.0f), antiWindupTau_(0.1f),
-previousError_(0.0f), filteredDerivative_(0.0f), derivativeAlpha_(1.0f) {
+previousError_(0.0f), filteredDerivative_(0.0f), derivativeAlpha_(0.0f) {
 
 }
 
 PID::PID(float kp, float ki, float kd) :
 kp_(kp), ki_(ki), kd_(kd), integral_(0.0f), antiWindupTau_(0.1f),
-previousError_(0.0f), filteredDerivative_(0.0f), derivativeAlpha_(1.0f) {
+previousError_(0.0f), filteredDerivative_(0.0f), derivativeAlpha_(0.0f) {
 	assert(!std::isinf(kp_) && !std::isnan(kp_) && !std::isinf(ki_)
 		&& !std::isnan(ki_) && !std::isinf(kd_) && !std::isnan(kd_)
 		&& "Error: gain values must be finite");

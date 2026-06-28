@@ -139,8 +139,9 @@ ErrorCode	SimulationManager::stepOnce() {
 	sensors_.update(timeStep_);
 	Vector3f	measured = sensors_.getMeasuredOrientation();
 
-	// 2. Compute PID control commands - setpoint is zero (level attitude)
-	Vector3f	setpoint(0.0f, 0.0f, 0.0f);
+	// 2. Compute PID control commands tracking the configured setpoint
+	Vector3f	sp = config_.getSetpointAt(simTime_);
+	Vector3f	setpoint(sp.getY(), sp.getZ(), sp.getX());
 	Vector3f	cmd = controller_.compute(setpoint, measured, timeStep_);
 
 	// 3. Send commands to actuator_ (with delay simulation)
@@ -149,8 +150,7 @@ ErrorCode	SimulationManager::stepOnce() {
 	// 4. Update actuator_ (applies delayed commands to rigid body)
 	actuator_.update(timeStep_);
 
-	// 5. Update rigid body dynamics_ with applied torques
-	// The actuator_ applies torques to the dynamics_, now integrate the motion
+	// 5. Integrate the rigid body once with the currently active torque
 	dynamics_.update(timeStep_, actuator_.getLastAppliedTorque());
 
 	// 7. Log current state

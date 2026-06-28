@@ -75,7 +75,7 @@ void	ActuatorDriver::sendCommand(const Vector3f& torque) {
 	safeTorque.setX(clamp(torque.getX(), maxTorquePerAxis_.getX()));
 	safeTorque.setY(clamp(torque.getY(), maxTorquePerAxis_.getY()));
 	safeTorque.setZ(clamp(torque.getZ(), maxTorquePerAxis_.getZ()));
-	
+
 	// Queue the (possibly saturated) torque enforcing global magnitude cap if set
 	if (maxTorqueMagnitude_ > 0.0f) {
 		float	mag = safeTorque.magnitude();
@@ -91,32 +91,15 @@ void	ActuatorDriver::sendCommand(const Vector3f& torque) {
 void	ActuatorDriver::update(float dt) {
 	assert(!std::isinf(dt) && !std::isnan(dt)
 		&& dt >= 0.0f && "Error: dt must be finite and non-negative");
-	
+
 	const float	epsilon = 1e-6f;
-	
+
 	currentTime_ += dt;
 	while (!commandBuffer_.empty()) {
 		const TimedCommand&	cmd = commandBuffer_.front();
 
 		if (cmd.timeIssued_ + delay_ <= currentTime_ + epsilon) {
-			float	effectiveTime = 0.0f;
-			float	absoluteExecTime = cmd.timeIssued_ + delay_;
-			float	timeFromExecutionToEnd = currentTime_ - absoluteExecTime;
-			
-			if (timeFromExecutionToEnd > 0.0f) {
-				// The cmd has been executed in a previous timestep or at the 
-				// start of the current one
-				effectiveTime = std::min(timeFromExecutionToEnd, dt);
-			} else {
-				// The cmd is being executed through the current timestep
-				effectiveTime = dt;
-			}
-			
-			// Ensure effectiveTime > 0
-			effectiveTime = std::max(effectiveTime, epsilon);
-			
-			lastAppliedCommand_ = TimedCommand(cmd.torque_, absoluteExecTime);
-			rbs_->update(effectiveTime, cmd.torque_);
+			lastAppliedCommand_ = TimedCommand(cmd.torque_, cmd.timeIssued_ + delay_);
 			commandBuffer_.pop();
 		} else {
 			break ;
@@ -162,7 +145,7 @@ bool	ActuatorDriver::isBufferSaturated(float saturationLimit)const  {
 		const TimedCommand&	cmd = tmp.front();
 		if (cmd.torque_.magnitude() > saturationLimit) {
 			return (true);
-		}	
+		}
 		tmp.pop();
 	}
 	return (false);

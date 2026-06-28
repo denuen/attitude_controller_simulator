@@ -1,5 +1,6 @@
 #include "../../includes/io/InputParser.hpp"
 #include <cassert>
+#include <cstdlib>
 #include <sstream>
 #include <fstream>
 #include <cmath>
@@ -172,6 +173,53 @@ void	InputParser::parseSetpointLine(TiXmlElement* element) {
 	setpoints_.push_back(std::make_pair(time, Vector3f(roll, pitch, yaw)));
 	lastTime_ = time;
 
+}
+
+bool	InputParser::parseFloatStrict(const char* text, float& out) {
+	if (text == NULL || *text == '\0') {
+		return (false);
+	}
+
+	char*	endptr = NULL;
+	float	value = std::strtof(text, &endptr);
+
+	if (endptr == text) {
+		return (false);
+	}
+	while (*endptr == ' ' || *endptr == '\t' || *endptr == '\n' || *endptr == '\r') {
+		endptr++;
+	}
+	if (*endptr != '\0') {
+		return (false);
+	}
+
+	if (std::isnan(value) || std::isinf(value)) {
+		return (false);
+	}
+
+	out = value;
+	return (true);
+}
+
+bool	InputParser::parseVector3fStrict(TiXmlElement* element, Vector3f& out) {
+	if (element == NULL) {
+		return (false);
+	}
+
+	float	x;
+	float	y;
+	float	z;
+
+	if (!parseFloatStrict(element->Attribute("x"), x)
+		|| !parseFloatStrict(element->Attribute("y"), y)
+		|| !parseFloatStrict(element->Attribute("z"), z)) {
+		return (false);
+	}
+
+	out.setX(x);
+	out.setY(y);
+	out.setZ(z);
+	return (true);
 }
 
 Vector3f	InputParser::getSetpointAt(float time) const {
@@ -403,9 +451,11 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseVector3f(tmp->FirstChildElement("Kp"), kp_);
-	parseVector3f(tmp->FirstChildElement("Ki"), ki_);
-	parseVector3f(tmp->FirstChildElement("Kd"), kd_);
+	if (!parseVector3fStrict(tmp->FirstChildElement("Kp"), kp_)
+		|| !parseVector3fStrict(tmp->FirstChildElement("Ki"), ki_)
+		|| !parseVector3fStrict(tmp->FirstChildElement("Kd"), kd_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse PhysicalProperties
 	tmp = root->FirstChildElement("PhysicalProperties");
@@ -413,7 +463,9 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseVector3f(tmp->FirstChildElement("Inertia"), inertia_);
+	if (!parseVector3fStrict(tmp->FirstChildElement("Inertia"), inertia_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse SensorCharacteristics
 	tmp = root->FirstChildElement("SensorCharacteristics");
@@ -421,8 +473,10 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseVector3f(tmp->FirstChildElement("DriftRate"), driftRate_);
-	parseVector3f(tmp->FirstChildElement("NoiseStdDev"), noiseStdDev_);
+	if (!parseVector3fStrict(tmp->FirstChildElement("DriftRate"), driftRate_)
+		|| !parseVector3fStrict(tmp->FirstChildElement("NoiseStdDev"), noiseStdDev_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse ActuatorProperties
 	tmp = root->FirstChildElement("ActuatorProperties");
@@ -430,15 +484,19 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseFloat(tmp->FirstChildElement("Delay"), actuatorDelay_);
+	if (!parseFloatStrict(tmp->FirstChildElement("Delay")->GetText(), actuatorDelay_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse additional ActuatorProperties
 	if (!tmp->FirstChildElement("MaxTorquePerAxis") || !tmp->FirstChildElement("MaxTorqueMagnitude")) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseVector3f(tmp->FirstChildElement("MaxTorquePerAxis"), maxTorquePerAxis_);
-	parseFloat(tmp->FirstChildElement("MaxTorqueMagnitude"), maxTorqueMagnitude_);
+	if (!parseVector3fStrict(tmp->FirstChildElement("MaxTorquePerAxis"), maxTorquePerAxis_)
+		|| !parseFloatStrict(tmp->FirstChildElement("MaxTorqueMagnitude")->GetText(), maxTorqueMagnitude_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse ControllerParameters
 	tmp = root->FirstChildElement("ControllerParameters");
@@ -446,8 +504,10 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseFloat(tmp->FirstChildElement("Smoothing"), controllerSmoothing_);
-	parseFloat(tmp->FirstChildElement("AntiWindup"), controllerAntiWindup_);
+	if (!parseFloatStrict(tmp->FirstChildElement("Smoothing")->GetText(), controllerSmoothing_)
+		|| !parseFloatStrict(tmp->FirstChildElement("AntiWindup")->GetText(), controllerAntiWindup_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse InitialConditions
 	tmp = root->FirstChildElement("InitialConditions");
@@ -455,8 +515,10 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 		return (ERR_CNF_MISSING_PARAMETER);
 	}
 
-	parseVector3f(tmp->FirstChildElement("Attitude"), initialAttitude_);
-	parseVector3f(tmp->FirstChildElement("AngularVelocity"), initialAngularVelocity_);
+	if (!parseVector3fStrict(tmp->FirstChildElement("Attitude"), initialAttitude_)
+		|| !parseVector3fStrict(tmp->FirstChildElement("AngularVelocity"), initialAngularVelocity_)) {
+		return (ERR_CNF_INVALID_FORMAT);
+	}
 
 	// Parse SetpointSequence
 	tmp = root->FirstChildElement("SetpointSequence");
@@ -466,7 +528,25 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 
 	for (TiXmlElement*	setpoint = tmp->FirstChildElement("Setpoint");
 		 setpoint != NULL; setpoint = setpoint->NextSiblingElement("Setpoint")) {
-		parseSetpointLine(setpoint);
+		float	time;
+		float	roll;
+		float	pitch;
+		float	yaw;
+
+		if (!parseFloatStrict(setpoint->Attribute("time"), time)
+			|| !parseFloatStrict(setpoint->Attribute("roll"), roll)
+			|| !parseFloatStrict(setpoint->Attribute("pitch"), pitch)
+			|| !parseFloatStrict(setpoint->Attribute("yaw"), yaw)) {
+			return (ERR_CNF_MISSING_PARAMETER);
+		}
+
+		// Setpoint times must be strictly increasing
+		if (time <= lastTime_) {
+			return (ERR_CNF_INVALID_FORMAT);
+		}
+
+		setpoints_.push_back(std::make_pair(time, Vector3f(roll, pitch, yaw)));
+		lastTime_ = time;
 	}
 
 	// Validate loaded data

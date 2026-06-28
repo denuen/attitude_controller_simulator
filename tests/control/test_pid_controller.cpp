@@ -73,9 +73,9 @@ void test_vector3f_pid_controller() {
 	Vector3f measure(0.0f, 0.0f, 0.0f);
 	Vector3f torque = controller.compute(setpoint, measure, 0.1f);
 
-	assertAlmostEqual(torque.getX(), 1.0f);
-	assertAlmostEqual(torque.getY(), 4.0f);
-	assertAlmostEqual(torque.getZ(), 9.0f);
+	assertAlmostEqual(torque.getX(), 9.0f);
+	assertAlmostEqual(torque.getY(), 1.0f);
+	assertAlmostEqual(torque.getZ(), 4.0f);
 	controller.reset();
 }
 

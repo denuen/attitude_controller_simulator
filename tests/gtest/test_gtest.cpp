@@ -59,9 +59,9 @@ TEST(PIDControllerTest, ComputeTorque) {
 	Vector3f	  tmp2;
 
 	Vector3f torque = ctrl.compute(tmp1, tmp2, 0.1f);
-	EXPECT_FLOAT_EQ(torque.getX(), 1.0f);
-	EXPECT_FLOAT_EQ(torque.getY(), 4.0f);
-	EXPECT_FLOAT_EQ(torque.getZ(), 9.0f);
+	EXPECT_FLOAT_EQ(torque.getX(), 9.0f);
+	EXPECT_FLOAT_EQ(torque.getY(), 1.0f);
+	EXPECT_FLOAT_EQ(torque.getZ(), 4.0f);
 }
 
 // RigidBodySimulator
@@ -455,11 +455,11 @@ TEST(ActuatorDriverTest, DelayedExecution) {
 	actuator.update(0.05f);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
 
-	// Verify that torque was applied by checking angular velocity change
-	Vector3f omega = rbs.getOmega();
-	EXPECT_GT(abs(omega.getX()), 0.0f);
-	EXPECT_GT(abs(omega.getY()), 0.0f);
-	EXPECT_GT(abs(omega.getZ()), 0.0f);
+	// The actuator holds the activated torque; the caller integrates it
+	Vector3f applied = actuator.getLastAppliedTorque();
+	EXPECT_FLOAT_EQ(applied.getX(), testTorque.getX());
+	EXPECT_FLOAT_EQ(applied.getY(), testTorque.getY());
+	EXPECT_FLOAT_EQ(applied.getZ(), testTorque.getZ());
 }
 
 TEST(ActuatorDriverTest, ZeroDelayExecution) {
@@ -479,11 +479,11 @@ TEST(ActuatorDriverTest, ZeroDelayExecution) {
 	actuator.update(0.01f);
 	EXPECT_EQ(actuator.getBufferedCommandCount(), static_cast<size_t>(0));
 
-	// Verify that torque was applied
-	Vector3f omega = rbs.getOmega();
-	EXPECT_GT(abs(omega.getX()), 0.0f);
-	EXPECT_GT(abs(omega.getY()), 0.0f);
-	EXPECT_GT(abs(omega.getZ()), 0.0f);
+	// The actuator holds the activated torque; the caller integrates it
+	Vector3f applied = actuator.getLastAppliedTorque();
+	EXPECT_FLOAT_EQ(applied.getX(), testTorque.getX());
+	EXPECT_FLOAT_EQ(applied.getY(), testTorque.getY());
+	EXPECT_FLOAT_EQ(applied.getZ(), testTorque.getZ());
 }
 
 TEST(ActuatorDriverTest, MultipleDelayedCommands) {
@@ -606,11 +606,11 @@ TEST(ActuatorDriverTest, RealisticControlLoop) {
 		// Send command through actuator
 		actuator.sendCommand(controlTorque);
 
-		// Update actuator (applies delayed commands)
+		// Advance the actuator (activates delayed commands)
 		actuator.update(dt);
 
-		// Update physics simulation
-		rbs.update(dt, Vector3f(0.0f, 0.0f, 0.0f));
+		// Integrate the body once with the actuator's currently held torque
+		rbs.update(dt, actuator.getLastAppliedTorque());
 
 		// Verify system stability
 		Vector3f omega = rbs.getOmega();

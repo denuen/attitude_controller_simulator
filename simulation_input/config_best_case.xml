@@ -5,7 +5,7 @@
   Gains tuned for a fast, well-damped response (wn ~= 1.5 rad/s, zeta ~= 0.9).
 -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <!-- PID gains per axis (x=pitch, y=yaw, z=roll) -->
+    <!-- PID gains per axis (x=roll, y=pitch, z=yaw) -->
     <ControllerGains>
         <Kp x="36.0" y="36.0" z="36.0" />
         <Ki x="1.0" y="1.0" z="1.0" />
@@ -41,8 +41,8 @@
     </ControllerParameters>
 
     <InitialConditions>
-        <!-- Initial attitude (pitch, yaw, roll) in rad -->
-        <Attitude x="0.02" y="-0.01" z="0.015" />
+        <!-- Initial attitude (roll, pitch, yaw) in rad -->
+        <Attitude x="0.015" y="0.02" z="-0.01" />
         <!-- Initial body rates (rad/s) -->
         <AngularVelocity x="0.003" y="-0.002" z="0.001" />
     </InitialConditions>

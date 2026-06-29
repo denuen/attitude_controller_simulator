@@ -6,7 +6,7 @@
   clear of the +/-90 deg Euler singularity (wn ~= 1 rad/s, zeta ~= 0.8).
 -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <!-- PID gains per axis (x=pitch, y=yaw, z=roll) -->
+    <!-- PID gains per axis (x=roll, y=pitch, z=yaw) -->
     <ControllerGains>
         <Kp x="30.0" y="30.0" z="30.0" />
         <Ki x="1.5" y="1.5" z="1.5" />
@@ -42,8 +42,8 @@
     </ControllerParameters>
 
     <InitialConditions>
-        <!-- Initial attitude (pitch, yaw, roll) in rad; large deviation -->
-        <Attitude x="0.15" y="-0.12" z="0.18" />
+        <!-- Initial attitude (roll, pitch, yaw) in rad; large deviation -->
+        <Attitude x="0.18" y="0.15" z="-0.12" />
         <!-- Initial body rates (rad/s); high -->
         <AngularVelocity x="0.05" y="-0.04" z="0.06" />
     </InitialConditions>

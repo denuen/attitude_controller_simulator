@@ -69,7 +69,7 @@ Vector3f	SensorSimulator::getMeasuredOrientation() const {
 		&& "Error: source must be a non-null pointer");
 
 	Vector3f	noise;
-	Vector3f	angles(source_->getPitch(), source_->getYaw(), source_->getRoll());
+	Vector3f	angles(source_->getRoll(), source_->getPitch(), source_->getYaw());
 	Vector3f	res;
 
 	noise.setX(noiseGenerator_.generate(0.0f, noiseStdDev_.getX()));

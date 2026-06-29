@@ -90,9 +90,10 @@ Vector3f	PIDController::compute(Vector3f& setpoint, Vector3f& measure, float dt)
 
 	Vector3f	torque;
 
-	torque.setX(roll_.compute(setpoint.getZ(), measure.getZ(), dt));
-	torque.setY(pitch_.compute(setpoint.getX(), measure.getX(), dt));
-	torque.setZ(yaw_.compute(setpoint.getY(), measure.getY(), dt));
+	// axis order: x=roll, y=pitch, z=yaw
+	torque.setX(roll_.compute(setpoint.getX(), measure.getX(), dt));
+	torque.setY(pitch_.compute(setpoint.getY(), measure.getY(), dt));
+	torque.setZ(yaw_.compute(setpoint.getZ(), measure.getZ(), dt));
 
 	return (torque);
 }

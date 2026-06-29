@@ -59,9 +59,9 @@ TEST(PIDControllerTest, ComputeTorque) {
 	Vector3f	  tmp2;
 
 	Vector3f torque = ctrl.compute(tmp1, tmp2, 0.1f);
-	EXPECT_FLOAT_EQ(torque.getX(), 9.0f);
-	EXPECT_FLOAT_EQ(torque.getY(), 1.0f);
-	EXPECT_FLOAT_EQ(torque.getZ(), 4.0f);
+	EXPECT_FLOAT_EQ(torque.getX(), 3.0f);
+	EXPECT_FLOAT_EQ(torque.getY(), 2.0f);
+	EXPECT_FLOAT_EQ(torque.getZ(), 6.0f);
 }
 
 // RigidBodySimulator
@@ -92,9 +92,9 @@ TEST(SensorSimulatorTest, BasicConstruction) {
 	EXPECT_FLOAT_EQ(omega.getY(), rbs.getOmega().getY());
 	EXPECT_FLOAT_EQ(omega.getZ(), rbs.getOmega().getZ());
 
-	EXPECT_FLOAT_EQ(orientation.getX(), rbs.getPitch());
-	EXPECT_FLOAT_EQ(orientation.getY(), rbs.getYaw());
-	EXPECT_FLOAT_EQ(orientation.getZ(), rbs.getRoll());
+	EXPECT_FLOAT_EQ(orientation.getX(), rbs.getRoll());
+	EXPECT_FLOAT_EQ(orientation.getY(), rbs.getPitch());
+	EXPECT_FLOAT_EQ(orientation.getZ(), rbs.getYaw());
 }
 
 TEST(SensorSimulatorTest, DriftAccumulation) {
@@ -194,9 +194,9 @@ TEST(SensorSimulatorTest, ResetFunctionality) {
 	EXPECT_NEAR(resetOmega.getY(), rbs.getOmega().getY(), 0.2f);
 	EXPECT_NEAR(resetOmega.getZ(), rbs.getOmega().getZ(), 0.2f);
 
-	EXPECT_NEAR(resetOrientation.getX(), rbs.getPitch(), 0.2f);
-	EXPECT_NEAR(resetOrientation.getY(), rbs.getYaw(), 0.2f);
-	EXPECT_NEAR(resetOrientation.getZ(), rbs.getRoll(), 0.2f);
+	EXPECT_NEAR(resetOrientation.getX(), rbs.getRoll(), 0.2f);
+	EXPECT_NEAR(resetOrientation.getY(), rbs.getPitch(), 0.2f);
+	EXPECT_NEAR(resetOrientation.getZ(), rbs.getYaw(), 0.2f);
 }
 
 TEST(SensorSimulatorTest, CopyConstructorAndAssignment) {

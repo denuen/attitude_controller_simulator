@@ -71,14 +71,14 @@ ErrorCode	SimulationManager::initializeModulesFromConfig() {
 	}
 
 	// Initialize controller with configuration gains
-	// Configuration convention: X=pitch, Y=yaw, Z=roll
+	// axis order: X=roll, Y=pitch, Z=yaw
 	Vector3f	kp = config_.getKp();
 	Vector3f	ki = config_.getKi();
 	Vector3f	kd = config_.getKd();
 
-	Vector3f	pitchGains(kp.getX(), ki.getX(), kd.getX()); // P,I,D for pitch
-	Vector3f	yawGains(kp.getY(), ki.getY(), kd.getY()); // P,I,D for yaw
-	Vector3f	rollGains(kp.getZ(), ki.getZ(), kd.getZ()); // P,I,D for roll
+	Vector3f	rollGains(kp.getX(), ki.getX(), kd.getX()); // P,I,D for roll
+	Vector3f	pitchGains(kp.getY(), ki.getY(), kd.getY()); // P,I,D for pitch
+	Vector3f	yawGains(kp.getZ(), ki.getZ(), kd.getZ()); // P,I,D for yaw
 
 	controller_.setAllGains(pitchGains, yawGains, rollGains);
 	controller_.setSmoothing(config_.getControllerSmoothing());
@@ -107,11 +107,11 @@ ErrorCode	SimulationManager::initializeModulesFromConfig() {
 	logData_.clear();
 	logData_.reserve(TIMELOG_INSTANCES);
 
-	// Set initial conditions from configuration
+	// Set initial conditions from configuration (X=roll, Y=pitch, Z=yaw)
 	Vector3f	initialAttitude = config_.getInitialAttitude();
-	dynamics_.setPitch(initialAttitude.getX());
-	dynamics_.setYaw(initialAttitude.getY());
-	dynamics_.setRoll(initialAttitude.getZ());
+	dynamics_.setRoll(initialAttitude.getX());
+	dynamics_.setPitch(initialAttitude.getY());
+	dynamics_.setYaw(initialAttitude.getZ());
 
 	// Set initial angular velocities from configuration
 	dynamics_.setOmega(config_.getInitialAngularVelocity());
@@ -140,8 +140,7 @@ ErrorCode	SimulationManager::stepOnce() {
 	Vector3f	measured = sensors_.getMeasuredOrientation();
 
 	// 2. Compute PID control commands tracking the configured setpoint
-	Vector3f	sp = config_.getSetpointAt(simTime_);
-	Vector3f	setpoint(sp.getY(), sp.getZ(), sp.getX());
+	Vector3f	setpoint = config_.getSetpointAt(simTime_);
 	Vector3f	cmd = controller_.compute(setpoint, measured, timeStep_);
 
 	// 3. Send commands to actuator_ (with delay simulation)

@@ -30,12 +30,26 @@ struct SimulationLogEntry {
 	float	omega_x;
 	float	omega_y;
 	float	omega_z;
+	float	torque_x;
+	float	torque_y;
+	float	torque_z;
+	float	gyro_x;
+	float	gyro_y;
+	float	gyro_z;
 
 	SimulationLogEntry() :
 	time(0.0f), pitch(0.0f), yaw(0.0f), roll(0.0f),
-	omega_x(0.0f), omega_y(0.0f), omega_z(0.0f) {}
-	SimulationLogEntry(float t, float p, float y_, float r, float wx, float wy, float wz) :
-	time(t), pitch(p), yaw(y_), roll(r), omega_x(wx), omega_y(wy), omega_z(wz) {}
+	omega_x(0.0f), omega_y(0.0f), omega_z(0.0f),
+	torque_x(0.0f), torque_y(0.0f), torque_z(0.0f),
+	gyro_x(0.0f), gyro_y(0.0f), gyro_z(0.0f) {}
+	SimulationLogEntry(float t, float p, float y_, float r,
+					   float wx, float wy, float wz,
+					   float tx, float ty, float tz,
+					   float gx, float gy, float gz) :
+	time(t), pitch(p), yaw(y_), roll(r),
+	omega_x(wx), omega_y(wy), omega_z(wz),
+	torque_x(tx), torque_y(ty), torque_z(tz),
+	gyro_x(gx), gyro_y(gy), gyro_z(gz) {}
 };
 
 class SimulationManager {

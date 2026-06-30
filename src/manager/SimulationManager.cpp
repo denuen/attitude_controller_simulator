@@ -224,11 +224,15 @@ ErrorCode	SimulationManager::logState() {
 	}
 
 	// Log complete state data for accurate CSV export
+	const Vector3f	omega = dynamics_.getOmega();
+	const Vector3f	torque = actuator_.getLastAppliedTorque();
+	const Vector3f	gyroscopic = cross(omega, componentMultiply(dynamics_.getInertia(), omega));
+
 	SimulationLogEntry	entry(simTime_,
 							dynamics_.getPitch(), dynamics_.getYaw(), dynamics_.getRoll(),
-							dynamics_.getOmega().getX(),
-							dynamics_.getOmega().getY(),
-							dynamics_.getOmega().getZ());
+							omega.getX(), omega.getY(), omega.getZ(),
+							torque.getX(), torque.getY(), torque.getZ(),
+							gyroscopic.getX(), gyroscopic.getY(), gyroscopic.getZ());
 
 	logData_.push_back(entry);
 
@@ -397,14 +401,16 @@ ErrorCode	SimulationManager::exportLog(const std::string& filename) const {
 	}
 
 	// Write CSV header
-	file << "time,pitch,yaw,roll,omega_x,omega_y,omega_z\n";
+	file << "time,pitch,yaw,roll,omega_x,omega_y,omega_z,torque_x,torque_y,torque_z,gyro_x,gyro_y,gyro_z\n";
 
 	// Write logged historical data
 	for (size_t i = 0; i < logData_.size(); ++i) {
 		const SimulationLogEntry& entry = logData_[i];
 		file << entry.time << "," << entry.pitch << "," << entry.yaw << ","
 			<< entry.roll << "," << entry.omega_x << "," << entry.omega_y
-			<< "," << entry.omega_z << "\n";
+			<< "," << entry.omega_z << "," << entry.torque_x << ","
+			<< entry.torque_y << "," << entry.torque_z << "," << entry.gyro_x
+			<< "," << entry.gyro_y << "," << entry.gyro_z << "\n";
 	}
 
 	file.close();

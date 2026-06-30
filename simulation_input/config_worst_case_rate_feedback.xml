@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Worst case: challenging but stabilizable (high noise, small drift, 40 ms
-  actuator delay), asymmetric inertia, aggressive multi-axis profile.
-  Authority and gains sized so the loop still converges and the attitude stays
-  clear of the +/-90 deg Euler singularity (wn ~= 1 rad/s, zeta ~= 0.8).
--->
+<!-- Worst case with measured body-rate feedback (RateFeedback=1). Same plant and gains as config_worst_case.xml; D-term uses -Kd * omega. -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <!-- PID gains per axis (x=roll, y=pitch, z=yaw) -->
     <ControllerGains>
@@ -39,7 +34,7 @@
         <Smoothing>0.5</Smoothing>
         <!-- Integral anti-windup time constant (s) -->
         <AntiWindup>0.3</AntiWindup>
-        <RateFeedback>0</RateFeedback>
+        <RateFeedback>1</RateFeedback>
     </ControllerParameters>
 
     <InitialConditions>

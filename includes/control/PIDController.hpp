@@ -63,6 +63,9 @@ class PIDController {
 		// Computes three-axis torque vector based on attitude setpoint and current measurement
 		Vector3f	compute(Vector3f& setpoint, Vector3f& measure, float dt);
 
+		// Attitude loop with -Kd * omega replacing the differentiated error term
+		Vector3f	computeWithBodyRate(Vector3f& setpoint, Vector3f& attitude, Vector3f& bodyRate, float dt);
+
 		/*
 			Checks the correctness of all the required values of the module.
 			Returns 1 if they are correct, 0 otherwise.

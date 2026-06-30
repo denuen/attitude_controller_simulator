@@ -24,6 +24,7 @@ class InputParser {
 		float		maxTorqueMagnitude_; // Maximum total torque magnitude (Nm)
 		float		controllerSmoothing_; // Controller smoothing factor
 		float		controllerAntiWindup_; // Controller anti-windup factor
+		bool		rateFeedbackEnabled_; // Close the loop on measured body rate
 
 		float		lastTime_; // Last processed time for setpoint interpolation
 
@@ -95,6 +96,9 @@ class InputParser {
 
 		// Returns the controller anti-windup factor
 		inline float	getControllerAntiWindup(void) const { return (controllerAntiWindup_); }
+
+		// True when the attitude loop is closed through measured body rate
+		inline bool	getRateFeedbackEnabled(void) const { return (rateFeedbackEnabled_); }
 
 		// Returns the initial attitude
 		inline Vector3f	getInitialAttitude(void) const { return (initialAttitude_); }

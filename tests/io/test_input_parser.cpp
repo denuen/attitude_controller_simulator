@@ -395,6 +395,27 @@ void test_missing_setpoint_components() {
 	}
 }
 
+void test_reference_config_rate_feedback_flags() {
+	InputParser attitude;
+	InputParser rate;
+
+	ErrorCode rc = attitude.loadConfigFileSafe("simulation_input/config_normal_case.xml");
+	assert(rc == ERR_SUCCESS && "baseline normal-case config must load");
+	assert(!attitude.getRateFeedbackEnabled() && "config_normal_case.xml must set RateFeedback=0");
+
+	rc = rate.loadConfigFileSafe("simulation_input/config_normal_case_rate_feedback.xml");
+	assert(rc == ERR_SUCCESS && "rate-feedback variant must load");
+	assert(rate.getRateFeedbackEnabled() && "config_normal_case_rate_feedback.xml must set RateFeedback=1");
+
+	assert(FLOAT_EQ(attitude.getKp().getX(), rate.getKp().getX())
+		&& "paired configs must share controller gains");
+	assert(FLOAT_EQ(attitude.getNoiseStdDev().getX(), rate.getNoiseStdDev().getX())
+		&& "paired configs must share sensor parameters");
+	(void)rc;
+
+	std::cout << "[OK] test_reference_config_rate_feedback_flags" << std::endl;
+}
+
 int main(void) {
 
 	test_valid_txt();
@@ -410,6 +431,8 @@ int main(void) {
 	test_xml_missing_fields();
 	test_xml_malformed();
 	test_xml_bad_structure();
+
+	test_reference_config_rate_feedback_flags();
 
 	// TXT error tests still disabled - they use assertion-based error handling
 	// which would require fork/signal handling to test in a single executable

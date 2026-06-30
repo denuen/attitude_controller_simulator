@@ -77,6 +77,7 @@ class SimulationManager {
 		// Safety limits
 		float							maxAttitudeRate_; // Maximum safe angular rate
 		float							controlSatLimit_; // Control saturation threshold
+		bool							rateFeedbackEnabled_; // Use measured omega in the control law
 
 		// It initialize the private member variables according to the InputParser execution
 

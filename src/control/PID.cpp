@@ -175,6 +175,53 @@ float	PID::compute(const float setpoint, const float measure, const float dt) {
 	return (output);
 }
 
+float	PID::computeWithBodyRate(const float setpoint, const float attitude,
+	const float bodyRate, const float dt) {
+	assert(dt > 0.0f && "Error: dt must be positive");
+
+	const float	error = setpoint - attitude;
+	assert(!std::isinf(error) && !std::isnan(error) && "Error: invalid error");
+
+	const float	derivativeTerm = -kd_ * bodyRate;
+	const float	proportionalTerm = kp_ * error;
+
+	float	newIntegral = integral_;
+
+	if (ki_ > 0.0f) {
+		const float	pdTerm = proportionalTerm + derivativeTerm;
+		const float	effectiveTau = std::max(antiWindupTau_, dt * 10.0f);
+		const float	integralCandidate = (integral_ + dt * error) / (1.0f + (dt / effectiveTau));
+		const float	unSatOutputCandidate = pdTerm + ki_ * integralCandidate;
+
+		float	satOutput = std::min(std::max(unSatOutputCandidate, PID::DEFAULT_OUTPUT_MIN),
+							PID::DEFAULT_OUTPUT_MAX);
+
+		const float	epsilon = 1e-6f;
+		if (std::abs(unSatOutputCandidate - satOutput) < epsilon) {
+			newIntegral = integralCandidate;
+		} else {
+			newIntegral = (integral_ + dt * error
+				+ (dt / effectiveTau) * ((satOutput - proportionalTerm - derivativeTerm) / ki_))
+				/ (1.0f + (dt / effectiveTau));
+		}
+	}
+
+	newIntegral = std::min(std::max(newIntegral, PID::DEFAULT_INTEGRAL_MIN),
+					PID::DEFAULT_INTEGRAL_MAX);
+
+	integral_ = newIntegral;
+
+	float	output = proportionalTerm + ki_ * integral_ + derivativeTerm;
+	output = std::min(std::max(output, PID::DEFAULT_OUTPUT_MIN),
+				PID::DEFAULT_OUTPUT_MAX);
+
+	previousError_ = error;
+	filteredDerivative_ = 0.0f;
+
+	assert(!std::isinf(output) && !std::isnan(output) && "Error: invalid PID output");
+	return (output);
+}
+
 void	PID::reset() {
 	integral_ = 0.0f;
 	previousError_ = 0.0f;

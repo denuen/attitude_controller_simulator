@@ -1,59 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Best case: near-ideal sensors (very low noise, no drift), 5 ms actuator
-  delay, light and balanced inertia, gentle maneuvers.
-  Gains tuned for a fast, well-damped response (wn ~= 1.5 rad/s, zeta ~= 0.9).
--->
+<!-- Normal case with measured body-rate feedback (RateFeedback=1). Same plant and gains as config_normal_case.xml; D-term uses -Kd * omega. -->
 <AttitudeControllerConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <!-- PID gains per axis (x=roll, y=pitch, z=yaw) -->
     <ControllerGains>
-        <Kp x="36.0" y="36.0" z="36.0" />
-        <Ki x="1.0" y="1.0" z="1.0" />
-        <Kd x="43.0" y="43.0" z="43.0" />
+        <Kp x="35.0" y="35.0" z="35.0" />
+        <Ki x="1.5" y="1.5" z="1.5" />
+        <Kd x="49.0" y="49.0" z="49.0" />
     </ControllerGains>
 
     <PhysicalProperties>
         <!-- Principal inertia (kg.m^2), body axes x=roll, y=pitch, z=yaw -->
-        <Inertia x="15.0" y="14.0" z="16.0" />
+        <Inertia x="20.0" y="18.0" z="24.0" />
     </PhysicalProperties>
 
     <SensorCharacteristics>
-        <!-- Drift rate (rad/s); ideal sensors -> zero -->
+        <!-- Drift rate (rad/s) -->
         <DriftRate x="0.0" y="0.0" z="0.0" />
         <!-- Gaussian noise std-dev per axis (rad) -->
-        <NoiseStdDev x="0.0008" y="0.0008" z="0.0008" />
+        <NoiseStdDev x="0.003" y="0.003" z="0.003" />
     </SensorCharacteristics>
 
     <ActuatorProperties>
         <!-- Transport delay (s) -->
-        <Delay>0.005</Delay>
+        <Delay>0.02</Delay>
         <!-- Per-axis torque limit (Nm) -->
-        <MaxTorquePerAxis x="24.0" y="24.0" z="26.0" />
+        <MaxTorquePerAxis x="22.0" y="22.0" z="24.0" />
         <!-- Global torque magnitude cap (Nm) -->
-        <MaxTorqueMagnitude>38.0</MaxTorqueMagnitude>
+        <MaxTorqueMagnitude>34.0</MaxTorqueMagnitude>
     </ActuatorProperties>
 
     <ControllerParameters>
         <!-- Derivative low-pass smoothing [0..1] -->
-        <Smoothing>0.6</Smoothing>
+        <Smoothing>0.4</Smoothing>
         <!-- Integral anti-windup time constant (s) -->
-        <AntiWindup>0.3</AntiWindup>
-        <RateFeedback>0</RateFeedback>
+        <AntiWindup>0.2</AntiWindup>
+        <RateFeedback>1</RateFeedback>
     </ControllerParameters>
 
     <InitialConditions>
         <!-- Initial attitude (roll, pitch, yaw) in rad -->
-        <Attitude x="0.015" y="0.02" z="-0.01" />
+        <Attitude x="0.045" y="0.06" z="-0.035" />
         <!-- Initial body rates (rad/s) -->
-        <AngularVelocity x="0.003" y="-0.002" z="0.001" />
+        <AngularVelocity x="0.01" y="-0.006" z="0.008" />
     </InitialConditions>
 
     <!-- Setpoints over time; times strictly increasing (s), angles in rad -->
     <SetpointSequence>
         <Setpoint time="0.0"  roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- origin -->
-        <Setpoint time="5.0"  roll="0.0"  pitch="0.35" yaw="0.0"  /> <!-- pitch up -->
-        <Setpoint time="10.0" roll="0.17" pitch="0.35" yaw="0.26" /> <!-- add roll + yaw -->
-        <Setpoint time="15.0" roll="0.17" pitch="0.0"  yaw="0.0"  /> <!-- pitch/yaw back to level -->
-        <Setpoint time="20.0" roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- return to origin -->
+        <Setpoint time="8.0"  roll="0.0"  pitch="0.52" yaw="0.0"  /> <!-- earth pointing -->
+        <Setpoint time="16.0" roll="0.26" pitch="0.52" yaw="0.35" /> <!-- sun pointing with roll -->
+        <Setpoint time="24.0" roll="0.44" pitch="0.17" yaw="0.35" /> <!-- comms attitude -->
+        <Setpoint time="30.0" roll="0.0"  pitch="0.0"  yaw="0.0"  /> <!-- return to nadir -->
     </SetpointSequence>
 </AttitudeControllerConfig>

@@ -10,7 +10,7 @@ InputParser::InputParser(void) :
 kp_(), ki_(), kd_(), inertia_(), driftRate_(),
 noiseStdDev_(), maxTorquePerAxis_(), initialAttitude_(), initialAngularVelocity_(),
 actuatorDelay_(0.0f), maxTorqueMagnitude_(0.0f), controllerSmoothing_(0.0f),
-controllerAntiWindup_(0.0f), lastTime_(-1.0f), setpoints_() {
+controllerAntiWindup_(0.0f), rateFeedbackEnabled_(false), lastTime_(-1.0f), setpoints_() {
 
 }
 
@@ -21,6 +21,7 @@ noiseStdDev_(inputParser.noiseStdDev_), maxTorquePerAxis_(inputParser.maxTorqueP
 initialAttitude_(inputParser.initialAttitude_), initialAngularVelocity_(inputParser.initialAngularVelocity_),
 actuatorDelay_(inputParser.actuatorDelay_), maxTorqueMagnitude_(inputParser.maxTorqueMagnitude_),
 controllerSmoothing_(inputParser.controllerSmoothing_), controllerAntiWindup_(inputParser.controllerAntiWindup_),
+rateFeedbackEnabled_(inputParser.rateFeedbackEnabled_),
 lastTime_(inputParser.lastTime_), setpoints_(inputParser.setpoints_) {
 
 }
@@ -41,6 +42,7 @@ InputParser&	InputParser::operator=(const InputParser& inputParser) {
 		maxTorqueMagnitude_ = inputParser.maxTorqueMagnitude_;
 		controllerSmoothing_ = inputParser.controllerSmoothing_;
 		controllerAntiWindup_ = inputParser.controllerAntiWindup_;
+		rateFeedbackEnabled_ = inputParser.rateFeedbackEnabled_;
 		lastTime_ = inputParser.lastTime_;
 		setpoints_ = inputParser.setpoints_;
 	}
@@ -358,6 +360,14 @@ void	InputParser::loadConfigFromXML(const std::string& filename) {
 	parseFloat(tmp->FirstChildElement("Smoothing"), controllerSmoothing_);
 	parseFloat(tmp->FirstChildElement("AntiWindup"), controllerAntiWindup_);
 
+	rateFeedbackEnabled_ = false;
+	TiXmlElement*	rateFeedback = tmp->FirstChildElement("RateFeedback");
+	if (rateFeedback != NULL) {
+		float	flag = 0.0f;
+		parseFloat(rateFeedback, flag);
+		rateFeedbackEnabled_ = (flag != 0.0f);
+	}
+
 	tmp = root->FirstChildElement("InitialConditions");
 	assert (tmp && "Error: missing InitialConditions section in XML file");
 
@@ -397,6 +407,7 @@ void	InputParser::reset(void) {
 	maxTorqueMagnitude_ = 0.0f;
 	controllerSmoothing_ = 0.0f;
 	controllerAntiWindup_ = 0.0f;
+	rateFeedbackEnabled_ = false;
 	lastTime_ = -1.0f;
 	setpoints_.clear();
 
@@ -507,6 +518,16 @@ ErrorCode	InputParser::loadConfigFromXMLSafe(const std::string& filename) {
 	if (!parseFloatStrict(tmp->FirstChildElement("Smoothing")->GetText(), controllerSmoothing_)
 		|| !parseFloatStrict(tmp->FirstChildElement("AntiWindup")->GetText(), controllerAntiWindup_)) {
 		return (ERR_CNF_INVALID_FORMAT);
+	}
+
+	rateFeedbackEnabled_ = false;
+	TiXmlElement*	rateFeedback = tmp->FirstChildElement("RateFeedback");
+	if (rateFeedback != NULL && rateFeedback->GetText() != NULL) {
+		float	flag = 0.0f;
+		if (!parseFloatStrict(rateFeedback->GetText(), flag)) {
+			return (ERR_CNF_INVALID_FORMAT);
+		}
+		rateFeedbackEnabled_ = (flag != 0.0f);
 	}
 
 	// Parse InitialConditions

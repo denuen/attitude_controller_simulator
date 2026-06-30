@@ -84,6 +84,9 @@ class PID {
 		// Computes control output with integral clamping and derivative filtering applied
 		float			compute(const float setpoint, const float measure, const float dt);
 
+		// Attitude PI with derivative action from measured body rate (-Kd * omega)
+		float			computeWithBodyRate(const float setpoint, const float attitude, const float bodyRate, const float dt);
+
 		// Resets integral accumulator and previous error to zero
 		void			reset();
 

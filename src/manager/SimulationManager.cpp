@@ -10,7 +10,7 @@ sensors_(&dynamics_), actuator_(&dynamics_, 0.012f), simTime_(0.0f),
 timeStep_(0.01f), maxSimTime_(0.0f), stepCount_(0),
 currentState_(STATE_UNINITIALIZED), lastError_(ERR_SUCCESS),
 maxJitter_(0.001f), deadlineMiss_(0.0f), maxAttitudeRate_(10.0f),
-controlSatLimit_(100.0f) {
+controlSatLimit_(100.0f), rateFeedbackEnabled_(false) {
 
 	timeLog_.reserve(TIMELOG_INSTANCES);
 }
@@ -21,7 +21,7 @@ sensors_(&dynamics_), actuator_(&dynamics_, 0.012f), simTime_(0.0f),
 timeStep_(timeStep_), maxSimTime_(0.0f), stepCount_(0),
 currentState_(STATE_UNINITIALIZED), lastError_(ERR_SUCCESS),
 maxJitter_(0.001f), deadlineMiss_(0.0f), maxAttitudeRate_(10.0f),
-controlSatLimit_(100.0f) {
+controlSatLimit_(100.0f), rateFeedbackEnabled_(false) {
 
 	assert(timeStep_ > 0.0f && timeStep_ <= 1.0f);
 	timeLog_.reserve(TIMELOG_INSTANCES);
@@ -33,7 +33,7 @@ sensors_(&dynamics_), actuator_(&dynamics_, 0.01f), simTime_(0.0f),
 timeStep_(timeStep_), maxSimTime_(0.0f), stepCount_(0),
 currentState_(STATE_UNINITIALIZED), lastError_(ERR_SUCCESS),
 maxJitter_(0.001f), deadlineMiss_(0.0f), maxAttitudeRate_(10.0f),
-controlSatLimit_(100.0f) {
+controlSatLimit_(100.0f), rateFeedbackEnabled_(false) {
 
 	assert(timeStep_ > 0.0f && timeStep_ <= 1.0f);
 	timeLog_.reserve(TIMELOG_INSTANCES);
@@ -83,6 +83,7 @@ ErrorCode	SimulationManager::initializeModulesFromConfig() {
 	controller_.setAllGains(pitchGains, yawGains, rollGains);
 	controller_.setSmoothing(config_.getControllerSmoothing());
 	controller_.setAntiWindup(config_.getControllerAntiWindup());
+	rateFeedbackEnabled_ = config_.getRateFeedbackEnabled();
 
 	if (!controller_.checkNumerics()) {
 		lastError_ = ERR_INIT_CONTROLLER_FAILED;
@@ -137,11 +138,16 @@ ErrorCode	SimulationManager::stepOnce() {
 
 	// 1. Update sensor readings based on current rigid body state
 	sensors_.update(timeStep_);
-	Vector3f	measured = sensors_.getMeasuredOrientation();
+	Vector3f	measuredAttitude = sensors_.getMeasuredOrientation();
 
-	// 2. Compute PID control commands tracking the configured setpoint
 	Vector3f	setpoint = config_.getSetpointAt(simTime_);
-	Vector3f	cmd = controller_.compute(setpoint, measured, timeStep_);
+	Vector3f	cmd;
+	if (rateFeedbackEnabled_) {
+		Vector3f	measuredRate = sensors_.getMeasuredOmega();
+		cmd = controller_.computeWithBodyRate(setpoint, measuredAttitude, measuredRate, timeStep_);
+	} else {
+		cmd = controller_.compute(setpoint, measuredAttitude, timeStep_);
+	}
 
 	// 3. Send commands to actuator_ (with delay simulation)
 	actuator_.sendCommand(cmd);

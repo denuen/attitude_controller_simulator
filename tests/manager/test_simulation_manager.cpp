@@ -95,6 +95,34 @@ void test_simulation_manager_short_run() {
 	std::cout << "Short simulation run test passed\n";
 }
 
+static void run_short_closed_loop(const char* config_path) {
+	SimulationManager sim;
+	ErrorCode load = sim.loadConfiguration(config_path);
+	assert(load == ERR_SUCCESS && "reference config must load");
+
+	ErrorCode run = sim.run(0.1f);
+	assert(run == ERR_SUCCESS && "short closed-loop run must complete");
+	assert(sim.getState() == STATE_COMPLETED
+		&& "simulator must reach STATE_COMPLETED");
+	assert(sim.getLastError() == ERR_SUCCESS
+		&& "no runtime fault on a 0.1 s nominal run");
+
+	(void)load;
+	(void)run;
+}
+
+void test_closed_loop_attitude_derivative_config() {
+	std::cout << "Testing closed loop with RateFeedback=0...\n";
+	run_short_closed_loop("simulation_input/config_normal_case.xml");
+	std::cout << "Attitude-derivative closed-loop test passed\n";
+}
+
+void test_closed_loop_rate_feedback_config() {
+	std::cout << "Testing closed loop with RateFeedback=1...\n";
+	run_short_closed_loop("simulation_input/config_normal_case_rate_feedback.xml");
+	std::cout << "Rate-feedback closed-loop test passed\n";
+}
+
 int main() {
 	std::cout << "Running SimulationManager tests...\n\n";
 
@@ -102,6 +130,8 @@ int main() {
 	test_simulation_manager_safety_limits();
 	test_simulation_manager_state_transitions();
 	test_simulation_manager_short_run();
+	test_closed_loop_attitude_derivative_config();
+	test_closed_loop_rate_feedback_config();
 
 	std::cout << "\nAll SimulationManager tests passed!\n";
 	return 0;

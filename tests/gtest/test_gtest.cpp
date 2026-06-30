@@ -53,15 +53,24 @@ TEST(PIDTest, DerivativeFiltering) {
 
 // PIDController
 TEST(PIDControllerTest, ComputeTorque) {
-	PIDController ctrl(Vector3f(1, 0.0f, 0.0f), Vector3f(2, 0.0f, 0.0f),
-					   Vector3f(3, 0.0f, 0.0f));
-	Vector3f	  tmp1(1, 2, 3);
-	Vector3f	  tmp2;
+	PIDController ctrl(Vector3f(1, 0.0f, 0.0f), Vector3f(2, 0.0f, 0.0f), Vector3f(3, 0.0f, 0.0f));
+	Vector3f	tmp1(1, 2, 3);
+	Vector3f	tmp2;
 
 	Vector3f torque = ctrl.compute(tmp1, tmp2, 0.1f);
 	EXPECT_FLOAT_EQ(torque.getX(), 3.0f);
 	EXPECT_FLOAT_EQ(torque.getY(), 2.0f);
 	EXPECT_FLOAT_EQ(torque.getZ(), 6.0f);
+}
+
+TEST(PIDControllerTest, RateFeedbackTorqueLaw) {
+	PIDController ctrl(Vector3f(2.0f, 0.0f, 4.0f), Vector3f(2.0f, 0.0f, 4.0f), Vector3f(2.0f, 0.0f, 4.0f));
+	Vector3f setpoint(0.5f, 0.0f, 0.0f);
+	Vector3f attitude(0.0f, 0.0f, 0.0f);
+	Vector3f bodyRate(0.1f, 0.0f, 0.0f);
+
+	Vector3f torque = ctrl.computeWithBodyRate(setpoint, attitude, bodyRate, 0.1f);
+	EXPECT_NEAR(torque.getX(), 0.6f, 1e-5f); // Kp*e - Kd*omega = 1.0 - 0.4
 }
 
 // RigidBodySimulator

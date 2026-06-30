@@ -98,6 +98,19 @@ Vector3f	PIDController::compute(Vector3f& setpoint, Vector3f& measure, float dt)
 	return (torque);
 }
 
+Vector3f	PIDController::computeWithBodyRate(Vector3f& setpoint, Vector3f& attitude,
+	Vector3f& bodyRate, float dt) {
+	assert(dt > 0.0f && "Error: dt must be positive");
+
+	Vector3f	torque;
+
+	torque.setX(roll_.computeWithBodyRate(setpoint.getX(), attitude.getX(), bodyRate.getX(), dt));
+	torque.setY(pitch_.computeWithBodyRate(setpoint.getY(), attitude.getY(), bodyRate.getY(), dt));
+	torque.setZ(yaw_.computeWithBodyRate(setpoint.getZ(), attitude.getZ(), bodyRate.getZ(), dt));
+
+	return (torque);
+}
+
 bool	PIDController::checkNumerics() const {
 	return (pitch_.checkNumerics() && yaw_.checkNumerics() && roll_.checkNumerics());
 }

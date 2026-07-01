@@ -170,6 +170,51 @@ venv:
 	@echo "Installing Python requirements from requirements.txt..."
 	@$(VENV_PY) -m pip install -r requirements.txt
 
+# Verify ffmpeg is on PATH, installing it automatically if missing
+check-ffmpeg:
+	@if command -v ffmpeg > /dev/null 2>&1; then \
+		echo "ffmpeg: found ($(shell command -v ffmpeg 2>/dev/null))"; \
+	else \
+		echo "ffmpeg: not found, attempting automatic installation..."; \
+		$(MAKE) install-ffmpeg; \
+		if command -v ffmpeg > /dev/null 2>&1; then \
+			echo "ffmpeg: installed successfully"; \
+		else \
+			echo "ERROR: ffmpeg is still unavailable after installation."; \
+			echo "  macOS:          brew install ffmpeg"; \
+			echo "  Debian/Ubuntu:  sudo apt-get install ffmpeg"; \
+			echo "  Fedora/RHEL:    sudo dnf install ffmpeg"; \
+			echo "  Arch:           sudo pacman -S ffmpeg"; \
+			exit 1; \
+		fi; \
+	fi
+
+# Install ffmpeg through the platform package manager
+install-ffmpeg:
+ifeq ($(UNAME), Darwin)
+	@if command -v brew > /dev/null 2>&1; then \
+		brew install ffmpeg; \
+	else \
+		echo "ERROR: Homebrew not found. Install it from https://brew.sh, then run 'brew install ffmpeg'."; \
+		exit 1; \
+	fi
+else
+	@if command -v apt-get > /dev/null 2>&1; then \
+		sudo apt-get update && sudo apt-get install -y ffmpeg; \
+	elif command -v dnf > /dev/null 2>&1; then \
+		sudo dnf install -y ffmpeg; \
+	elif command -v yum > /dev/null 2>&1; then \
+		sudo yum install -y ffmpeg; \
+	elif command -v pacman > /dev/null 2>&1; then \
+		sudo pacman -S --noconfirm ffmpeg; \
+	elif command -v zypper > /dev/null 2>&1; then \
+		sudo zypper install -y ffmpeg; \
+	else \
+		echo "ERROR: no supported package manager found. Please install ffmpeg manually."; \
+		exit 1; \
+	fi
+endif
+
 # Run the Python visualization test suite (requires the deps in requirements.txt)
 test-visualization:
 	$(PYTHON) -m unittest discover -s $(TEST_DIR)/visualization -t . -v
@@ -269,6 +314,8 @@ help:
 	@echo "Dependency Targets:"
 	@echo "  check-tinyxml           Verify tinyxml is available, installing it if missing"
 	@echo "  install-tinyxml         Install tinyxml via the platform package manager"
+	@echo "  check-ffmpeg            Verify ffmpeg is on PATH, installing it if missing"
+	@echo "  install-ffmpeg          Install ffmpeg via the platform package manager"
 	@echo ""
 	@echo "Other Targets:"
 	@echo "  help                    Show this help message"
@@ -277,4 +324,4 @@ help:
 	@echo "  Input configs:  $(INPUT_DIR)/"
 	@echo "  Output files:   $(OUTPUT_DIR)/"
 
-.PHONY: all all-tests venv test-visualization check-tinyxml install-tinyxml clean clean-pyc clean-output fclean re release release-main release-all release-target help
+.PHONY: all all-tests venv test-visualization check-tinyxml install-tinyxml check-ffmpeg install-ffmpeg clean clean-pyc clean-output fclean re release release-main release-all release-target help

@@ -13,23 +13,25 @@ Runs are bit-reproducible for a given RNG seed. The only non-deterministic eleme
 Rigid body, rotation about a fixed center of mass, diagonal inertia $I = \mathrm{diag}(I_{xx},I_{yy},I_{zz})$ (principal axes only). Euler's equation with the gyroscopic term:
 
 $$
-I\,\dot{\boldsymbol\omega} = \boldsymbol\tau - \boldsymbol\omega \times (I\,\boldsymbol\omega)
+I\,\dot{\mathbf{\omega}} = \mathbf{\tau} - \mathbf{\omega} \times (I\,\mathbf{\omega})
 $$
 
-$\boldsymbol\tau$ is the torque the actuator is currently holding. $I^{-1}$ is cached at initialization; angular acceleration is a component-wise multiply: $\dot{\boldsymbol\omega} = I^{-1}(\boldsymbol\tau - \boldsymbol\omega \times I\boldsymbol\omega)$.
+$\mathbf{\tau}$ is the torque the actuator is currently holding. $I^{-1}$ is cached at initialization; angular acceleration is a component-wise multiply: $\dot{\mathbf{\omega}} = I^{-1}(\mathbf{\tau} - \mathbf{\omega} \times I\mathbf{\omega})$.
 
 ### Attitude Kinematics
 
 3-2-1 (ZYX) Euler sequence — yaw $\psi$, pitch $\theta$, roll $\phi$. Kinematic map from body rates $(p,q,r)$ to angle rates:
 
 $$
-\begin{bmatrix} \dot\phi \\ \dot\theta \\ \dot\psi \end{bmatrix}
-=
-\begin{bmatrix}
-p + (q\sin\phi + r\cos\phi)\tan\theta \\
-q\cos\phi - r\sin\phi \\
-(q\sin\phi + r\cos\phi)/\cos\theta
-\end{bmatrix}
+\dot\phi = p + (q\sin\phi + r\cos\phi)\tan\theta
+$$
+
+$$
+\dot\theta = q\cos\phi - r\sin\phi
+$$
+
+$$
+\dot\psi = (q\sin\phi + r\cos\phi)/\cos\theta
 $$
 
 The singularity at $\theta = \pm\pi/2$ is inherent to any Euler-angle representation. The 3-2-1 sequence was chosen for its direct correspondence to the attitude control literature and to the standard pilot-convention (roll, pitch, yaw); a quaternion representation would remove the singularity but would decouple the state variables from their physical meaning in a way that complicates both the control law and the output analysis. For a testbed operating within a normal flight envelope, the arithmetic guard suffices: $|\cos\theta|$ floored to $10^{-6}$ with sign preserved, preventing a divide-by-zero without any added kinematic machinery. Angles wrapped to $[-\pi, \pi]$ after each step.
@@ -39,9 +41,9 @@ The singularity at $\theta = \pm\pi/2$ is inherent to any Euler-angle representa
 Semi-implicit Euler at fixed $\Delta t$: angular velocity updated first from the old angles, then kinematics run with the fresh rate:
 
 $$
-\boldsymbol\omega_{k+1} = \boldsymbol\omega_k + \Delta t\,I^{-1}\!\left(\boldsymbol\tau_k - \boldsymbol\omega_k \times I\boldsymbol\omega_k\right),
+\mathbf{\omega}_{k+1} = \mathbf{\omega}_k + \Delta t\,I^{-1}\!\left(\mathbf{\tau}_k - \mathbf{\omega}_k \times I\mathbf{\omega}_k\right),
 \qquad
-\boldsymbol\Theta_{k+1} = \boldsymbol\Theta_k + \Delta t\,f\!\left(\boldsymbol\Theta_k,\,\boldsymbol\omega_{k+1}\right)
+\mathbf{\Theta}_{k+1} = \mathbf{\Theta}_k + \Delta t\,f\!\left(\mathbf{\Theta}_k,\,\mathbf{\omega}_{k+1}\right)
 $$
 
 Default $\Delta t = 0.01\ \text{s}$ (100 Hz). Any value in $(0,1]\ \text{s}$ is accepted; warnings above $0.1\ \text{s}$ or when $\Delta t > T/10$.
@@ -95,8 +97,8 @@ Noise drawn per axis and per call via Box-Muller, with a cached spare deviate to
 Two conditioning stages before the delay queue: per-axis symmetric clamp, then a magnitude cap that rescales without rotating:
 
 $$
-\boldsymbol\tau' = \mathrm{clamp}(\boldsymbol\tau,\,\boldsymbol\tau^{\max}_\text{axis}), \qquad
-\boldsymbol\tau'' = \boldsymbol\tau' \cdot \min\!\left(1,\,\frac{\tau^{\max}_\text{mag}}{\|\boldsymbol\tau'\|}\right)
+\mathbf{\tau}' = \mathrm{clamp}(\mathbf{\tau},\,\mathbf{\tau}^{\max}_\text{axis}), \qquad
+\mathbf{\tau}'' = \mathbf{\tau}' \cdot \min\!\left(1,\,\frac{\tau^{\max}_\text{mag}}{\|\mathbf{\tau}'\|}\right)
 $$
 
 The conditioned command is timestamped, pushed to a FIFO. `update()` advances the actuator clock by $\Delta t$ and drains every entry with $t_\text{issue} + \delta \le t_\text{now}$. The last released torque is held constant until the next — zero-order hold — and that's what the integrator sees.
@@ -129,7 +131,7 @@ time, pitch, yaw, roll, omega_x, omega_y, omega_z,
 torque_x, torque_y, torque_z, gyro_x, gyro_y, gyro_z
 ```
 
-One row per step. Angles in rad, rates in rad/s, the control torque $\boldsymbol\tau$ (last torque applied by the actuator) and the gyroscopic reaction $\boldsymbol\omega \times (I\boldsymbol\omega)$ in N·m, both body-frame. This file is the only interface to the Python layer.
+One row per step. Angles in rad, rates in rad/s, the control torque $\mathbf{\tau}$ (last torque applied by the actuator) and the gyroscopic reaction $\mathbf{\omega} \times (I\mathbf{\omega})$ in N·m, both body-frame. This file is the only interface to the Python layer.
 
 ### Coordinate Convention
 
@@ -185,7 +187,7 @@ Every module exposes `checkNumerics()`, all setters assert finiteness, and the m
 
 - *Static sequence* — 2×2 figure: isometric, top, and side 3D views of a sampled body sequence along X (inter-body spacing derived from the box half-diagonal, so meshes can't overlap regardless of orientation), plus angle-vs-time with a settling marker
 - *Trajectory* — time-colored 3D curve through roll × pitch × yaw space, start/end/settling markers
-- *Animation* — one frame per CSV row up to settling plus a margin. The body box and its faint orientation triad carry the attitude; two arrows from the origin, rotated into the inertial frame, carry the dynamics: angular velocity $\boldsymbol\omega$ (magenta) and net control torque $\boldsymbol\tau$ (orange). Telemetry overlay: $\phi/\theta/\psi$, $|\boldsymbol\omega|$, net torque, settling status; time is in the title. The gyroscopic arrow is off by default (`show_gyroscopic_arrow`). Clips ≥ 200 frames on a multi-core host are split across up to 8 worker processes and joined by one `ffmpeg` call; shorter clips and GIF go through `FuncAnimation`. At 100 fps playback is real-time.
+- *Animation* — one frame per CSV row up to settling plus a margin. The body box and its faint orientation triad carry the attitude; two arrows from the origin, rotated into the inertial frame, carry the dynamics: angular velocity $\mathbf{\omega}$ (magenta) and net control torque $\mathbf{\tau}$ (orange). Telemetry overlay: $\phi/\theta/\psi$, $|\mathbf{\omega}|$, net torque, settling status; time is in the title. The gyroscopic arrow is off by default (`show_gyroscopic_arrow`). Clips ≥ 200 frames on a multi-core host are split across up to 8 worker processes and joined by one `ffmpeg` call; shorter clips and GIF go through `FuncAnimation`. At 100 fps playback is real-time.
 
 `VisualizationConfig` holds all rendering parameters. Entry point: `python -m visualization`.
 
@@ -221,13 +223,13 @@ The animation runs from $t = 0$ to the settling instant plus a margin (5% of the
 
 **Body and orientation triad.** The translucent box is the rigid body. The three colored axes attached to it (red X / roll, green Y / pitch, blue Z / yaw) rotate with it and are the primary read-out of attitude. The box is drawn translucent and the triad faint so the dynamics arrows below stay legible through them.
 
-**Angular velocity arrow.** The magenta arrow from the origin is $\boldsymbol\omega$ rotated into the inertial frame by $R_z(\psi)\,R_y(\theta)\,R_x(\phi)$, so it shows the instantaneous rotation axis as seen from outside the body. Its length is scaled to the maximum $|\boldsymbol\omega|$ across the animated span — the longest arrow in the video fills the view cube.
+**Angular velocity arrow.** The magenta arrow from the origin is $\mathbf{\omega}$ rotated into the inertial frame by $R_z(\psi)\,R_y(\theta)\,R_x(\phi)$, so it shows the instantaneous rotation axis as seen from outside the body. Its length is scaled to the maximum $|\mathbf{\omega}|$ across the animated span — the longest arrow in the video fills the view cube.
 
-**Control torque arrow.** The orange arrow is the net control torque the actuator applies, the action that steers the body toward the setpoint. The raw per-step torque is noise-dominated — the derivative term reacts to sensor noise and chatters by tens of N·m, flipping direction nearly every frame — but that high-frequency part is filtered out by the body's inertia through double integration ($\boldsymbol\tau \to \dot{\boldsymbol\omega} \to \boldsymbol\omega \to \boldsymbol\Theta$) and produces negligible attitude change. The arrow therefore shows the net component (a centered moving average of the torque vector, window `torque_smoothing_window`, default 15 frames), which grows during a maneuver and shrinks toward zero once settled, so it tracks the visible motion. The CSV values are never modified.
+**Control torque arrow.** The orange arrow is the net control torque the actuator applies, the action that steers the body toward the setpoint. The raw per-step torque is noise-dominated — the derivative term reacts to sensor noise and chatters by tens of N·m, flipping direction nearly every frame — but that high-frequency part is filtered out by the body's inertia through double integration ($\mathbf{\tau} \to \dot{\mathbf{\omega}} \to \mathbf{\omega} \to \mathbf{\Theta}$) and produces negligible attitude change. The arrow therefore shows the net component (a centered moving average of the torque vector, window `torque_smoothing_window`, default 15 frames), which grows during a maneuver and shrinks toward zero once settled, so it tracks the visible motion. The CSV values are never modified.
 
-The gyroscopic reaction $\boldsymbol\omega \times (I\boldsymbol\omega)$ is logged but not drawn by default — it is an internal term, near-zero except in aggressive slews. Set `show_gyroscopic_arrow` in `VisualizationConfig` to add it (cyan), normalized to its own peak.
+The gyroscopic reaction $\mathbf{\omega} \times (I\mathbf{\omega})$ is logged but not drawn by default — it is an internal term, near-zero except in aggressive slews. Set `show_gyroscopic_arrow` in `VisualizationConfig` to add it (cyan), normalized to its own peak.
 
-**Telemetry overlay** (top-left): attitude angles $\phi/\theta/\psi$, $|\boldsymbol\omega|$, net torque magnitude, and the settling line (`settling...` → `SETTLED   t_s = …`, or `not settled within log`). Time is shown in the title.
+**Telemetry overlay** (top-left): attitude angles $\phi/\theta/\psi$, $|\mathbf{\omega}|$, net torque magnitude, and the settling line (`settling...` → `SETTLED   t_s = …`, or `not settled within log`). Time is shown in the title.
 
 ---
 
@@ -274,8 +276,8 @@ Each pair was integrated at $\Delta t = 0.01\ \text{s}$ (100 Hz) for $t = 200\ \
 | Settling $t_s$ mean / max | 3.20 / 3.62 s | 3.45 / 4.05 s | 3.93 / 4.96 s | 4.23 / 5.73 s | 6.20 / 8.58 s | 4.81 / 7.09 s |
 | Overshoot mean / max | 0.0 / 0.1 % | 2.5 / 10.8 % | 0.4 / 0.9 % | 3.3 / 17.1 % | 3.5 / 12.2 % | 1.4 / 7.3 % |
 | Hold error — 3-axis RMS | 0.008° | **0.003°** | 0.12° | **0.010°** | **0.75°** | 0.87° |
-| Peak $\lvert\boldsymbol\tau\rvert$ | 38.0 N·m | 15.7 N·m | 34.0 N·m | 20.7 N·m | 32.0 N·m | 20.0 N·m |
-| Peak $\lvert\boldsymbol\omega\rvert$ | 16.5 °/s | 15.2 °/s | 16.0 °/s | 17.2 °/s | 20.3 °/s | 22.1 °/s |
+| Peak $\lvert\mathbf{\tau}\rvert$ | 38.0 N·m | 15.7 N·m | 34.0 N·m | 20.7 N·m | 32.0 N·m | 20.0 N·m |
+| Peak $\lvert\mathbf{\omega}\rvert$ | 16.5 °/s | 15.2 °/s | 16.0 °/s | 17.2 °/s | 20.3 °/s | 22.1 °/s |
 | Peak gyroscopic torque | 0.071 N·m | 0.065 N·m | 0.170 N·m | 0.190 N·m | 0.395 N·m | 0.274 N·m |
 
 **Best.** Rate feedback sharpens the long hold (0.008° → 0.003° RMS) by replacing the differentiated attitude error with $\tilde\omega$. Transient overshoot rises because $K_d\tilde\omega$ reacts to measurement noise on the gyro channel; peak torque drops well below the 38 N·m cap because the D-term no longer amplifies attitude noise.
